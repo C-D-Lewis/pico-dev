@@ -15,4 +15,15 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
 
 # Scripts
 
-`shortcuts.py` - Media and keyboard shortcuts
+## `shortcuts.py` - Media and keyboard shortcuts.
+
+| Key | Function | Color |
+|-----|----------|-------|
+| 0 | Volume up | Yellow |
+| 1 | Previous track | Blue |
+| 2 | Play/pause | Green |
+| 3 | Next track | Blue |
+| 4 | Volume Down | Yellow |
+| 6 | Mute volume | Red |
+| 12 | Ctrl+M | Red |
+| 15 | Ctrl+Shift+Esc | Purple |

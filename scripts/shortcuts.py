@@ -53,6 +53,10 @@ keymap = {
   12: {
     'combo': (Keycode.CONTROL, Keycode.M),
     'color': (64, 0, 0)
+  },
+  15: {
+    'combo': (Keycode.CONTROL, Keycode.SHIFT, Keycode.ESCAPE),
+    'color': (79, 11, 103)
   }
 }
 
