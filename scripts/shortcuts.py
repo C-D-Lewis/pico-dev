@@ -27,40 +27,32 @@ consumer_control = ConsumerControl(usb_hid.devices)
 # A map of keycodes that will be mapped sequentially to each of the keys, 0-15
 keymap = {
   0: {
-    'type': 'control',
-    'code': ConsumerControlCode.VOLUME_INCREMENT,
-    'inactive': (64, 64, 0),
-    'active': (255, 255, 0)
+    'control_code': ConsumerControlCode.VOLUME_INCREMENT,
+    'color': (64, 64, 0)
   },
   1: {
-    'type': 'control',
-    'code': ConsumerControlCode.SCAN_PREVIOUS_TRACK,
-    'inactive': (0, 0, 64),
-    'active': (0, 0, 255)
+    'control_code': ConsumerControlCode.SCAN_PREVIOUS_TRACK,
+    'color': (0, 0, 64)
   },
   2: {
-    'type': 'control',
-    'code': ConsumerControlCode.PLAY_PAUSE,
-    'inactive': (0, 64, 0),
-    'active': (0, 255, 0)
+    'control_code': ConsumerControlCode.PLAY_PAUSE,
+    'color': (0, 64, 0)
   },
   3: {
-    'type': 'control',
-    'code': ConsumerControlCode.SCAN_NEXT_TRACK,
-    'inactive': (0, 0, 64),
-    'active': (0, 0, 255)
+    'control_code': ConsumerControlCode.SCAN_NEXT_TRACK,
+    'color': (0, 0, 64)
   },
   4: {
-    'type': 'control',
-    'code': ConsumerControlCode.VOLUME_DECREMENT,
-    'inactive': (64, 64, 0),
-    'active': (255, 255, 0)
+    'control_code': ConsumerControlCode.VOLUME_DECREMENT,
+    'color': (64, 64, 0)
+  },
+  6: {
+    'control_code': ConsumerControlCode.MUTE,
+    'color': (64, 0, 0)
   },
   12: {
-    'type': 'control',
-    'code': ConsumerControlCode.MUTE,
-    'inactive': (64, 0, 0),
-    'active': (255, 0, 0)
+    'combo': (Keycode.CONTROL, Keycode.M),
+    'color': (64, 0, 0)
   }
 }
 
@@ -71,24 +63,27 @@ for key in keys:
   config = keymap[key.number]
 
   # Set initial color
-  key.set_led(*config['inactive'])
+  key.set_led(*config['color'])
 
   # When pressed
   @keybow.on_press(key)
   def press_handler(key):
     config = keymap[key.number]
 
-    if config['type'] == 'control':
-      consumer_control.send(config['code'])
-    if config['type'] == 'key':
-      keyboard.send(config['code'])
-    key.set_led(*config['active'])
+    if 'control_code' in config:
+      consumer_control.send(config['control_code'])
+    if 'text' in config:
+      layout.write(config['text'])
+    if 'combo' in config:
+      keyboard.press(*config['combo'])
+      keyboard.release(*config['combo'])
+    key.set_led(255, 255, 255)
 
   # When released
   @keybow.on_release(key)
   def release_handler(key):
     config = keymap[key.number]
-    key.set_led(*config['inactive'])
+    key.set_led(*config['color'])
 
 while True:
   keybow.update()
