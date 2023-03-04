@@ -8,7 +8,7 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
 
 # Setup
 
-1. Copy the Adafruit CircuitPython firmware from `uf2` to the Pico.
+1. Install the Adafruit CircuitPython firmware from `uf2` to the Pico.
 2. Copy the keypad required libraries from `lib` to `lib` on the Pico.
 3. Copy an example from `examples` as `code.py` to test all is working.
 
@@ -26,4 +26,5 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
 | 4 | Volume Down | Yellow |
 | 6 | Mute volume | Red |
 | 12 | Ctrl+M | Red |
+| 14 | Sleep | Dark blue |
 | 15 | Ctrl+Shift+Esc | Purple |

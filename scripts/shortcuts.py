@@ -6,6 +6,7 @@ from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
 from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.consumer_control_code import ConsumerControlCode
+from time import sleep
 
 # Set up Keybow
 keybow = PMK(Hardware())
@@ -54,11 +55,36 @@ keymap = {
     'combo': (Keycode.CONTROL, Keycode.M),
     'color': (64, 0, 0)
   },
+  14: {
+    'sequence': [
+      (Keycode.GUI, Keycode.X),
+      Keycode.U,
+      Keycode.S
+    ],
+    'color': (0, 0, 32)
+  },
   15: {
     'combo': (Keycode.CONTROL, Keycode.SHIFT, Keycode.ESCAPE),
     'color': (79, 11, 103)
   }
 }
+
+#
+# Flash a key to confirm an action.
+#
+def flash_confirm(key):
+  key.set_led(255, 255, 255)
+  sleep(0.05)
+  key.set_led(0, 0, 0)
+  sleep(0.05)
+  key.set_led(255, 255, 255)
+  sleep(0.05)
+  key.set_led(0, 0, 0)
+  sleep(0.05)
+  key.set_led(255, 255, 255)
+  sleep(0.05)
+  key.set_led(0, 0, 0)
+  sleep(0.05)
 
 # Attach handler functions to all of the keys
 for key in keys:
@@ -80,14 +106,22 @@ for key in keys:
       layout.write(config['text'])
     if 'combo' in config:
       keyboard.press(*config['combo'])
-      keyboard.release(*config['combo'])
-    key.set_led(255, 255, 255)
+      keyboard.release_all()
+    if 'sequence' in config:
+      for item in config['sequence']:
+        if isinstance(item, tuple):
+          keyboard.press(*item)
+        else:
+          keyboard.press(item)
+        sleep(0.2)
+        keyboard.release_all()
+
+    flash_confirm(key)
 
   # When released
   @keybow.on_release(key)
   def release_handler(key):
-    config = keymap[key.number]
-    key.set_led(*config['color'])
+    key.set_led(*keymap[key.number]['color'])
 
 while True:
   keybow.update()
