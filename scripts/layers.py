@@ -59,20 +59,32 @@ KEY_MAP = {
     },
     2: {
       'custom': lambda: launch_program('steam'),
-      'color': (0, 0, 32)
+      'color': (0, 0, 16)
+    },
+    3: {
+      'custom': lambda: launch_program('discord'),
+      'color': (0, 32, 64)
     }
   },
   # Unused
   2: {},
   # System
   3: {
-    3: {
-      'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.S],
-      'color': (0, 0, 32)
-    },
     1: {
       'combo': (Keycode.CONTROL, Keycode.SHIFT, Keycode.ESCAPE),
       'color': (79, 11, 103)
+    },
+    2: {
+      'combo': (Keycode.GUI, Keycode.E),
+      'color': (64, 64, 0)
+    },
+    14: {
+      'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.S],
+      'color': (0, 0, 32)
+    },
+    15: {
+      'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.U],
+      'color': (32, 0, 0)
     }
   }
 }
@@ -176,17 +188,21 @@ def handle_key_press(key):
 
 # Attach handlers
 for key in keys:
-  # Not configured
-  if key.number not in KEY_MAP[layer_index] and key.number not in INDEX_SELECTION_KEYS:
-    continue
-
   @keybow.on_press(key)
   def press_handler(key):
+    # Not configured
+    if key.number not in KEY_MAP[layer_index] and key.number not in INDEX_SELECTION_KEYS:
+      return
+
     handle_key_press(key)
     flash_confirm(key)
 
   @keybow.on_release(key)
   def release_handler(key):
+    # Not configured
+    if key.number not in KEY_MAP[layer_index] and key.number not in INDEX_SELECTION_KEYS:
+      return
+
     # Layer selection key
     if key.number in INDEX_SELECTION_KEYS:
       key.set_led(*COLOR_SELECTED_LAYER if key.number / 4 == layer_index else COLOR_UNSELECTED_LAYER)
