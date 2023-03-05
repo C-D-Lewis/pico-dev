@@ -7,6 +7,7 @@ from adafruit_hid.keycode import Keycode
 from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.consumer_control_code import ConsumerControlCode
 import time
+import math
 
 # Index selection key numbers
 INDEX_SELECTION_KEYS = (0, 4, 8, 12)
@@ -219,6 +220,38 @@ def handle_key_press(key):
   if 'custom' in config:
     config['custom']()
 
+#
+# Pulse while asleep
+#
+def sleep_pulse():
+  keys[0].set_led(2, 2, 2)
+  time.sleep(1)
+  keybow.update()
+  keys[0].set_led(*COLOR_OFF)
+  time.sleep(1)
+
+#
+# Show clock animation
+#
+def show_clock():
+  digit_leds = [0, 1, 2, 3, 7, 11, 15, 14, 13, 12, 8, 4]
+
+  for key in keys:
+    key.set_led(*COLOR_OFF)
+
+  # (year, month, mday, hour, minute, second, ...)
+  now = time.localtime()
+  hours = now[3]
+  minutes = now[4]
+  seconds = now[5]
+
+  hours_index = math.floor(math.floor((hours * 100) / 24) / 100 * len(digit_leds))
+  keys[hours_index].set_led(32, 0, 0)
+  mins_index = math.floor(math.floor((minutes * 100) / 60) / 100 * len(digit_leds))
+  keys[mins_index].set_led(0, 0, 32)
+  secs_index = math.floor(math.floor((seconds * 100) / 60) / 100 * len(digit_leds))
+  keys[secs_index].set_led(0, 32, 32)
+
 # Attach handlers
 for key in keys:
   @keybow.on_press(key)
@@ -258,12 +291,10 @@ def main():
     if now - last_used > SLEEP_TIMEOUT_S and not is_sleeping:
       go_to_sleep()
 
-    # Do less work while sleeping
     # if is_sleeping:
-    #   keys[0].set_led(2, 2, 2)
-    #   time.sleep(1)
-    #   keybow.update()
-    #   keys[0].set_led(*COLOR_OFF)
-    #   time.sleep(1)
+      # sleep_pulse()
+
+      # time.sleep(1)
+      # show_clock()
 
 main()
