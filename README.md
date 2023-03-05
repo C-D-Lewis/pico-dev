@@ -28,3 +28,10 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
 | 12 | Ctrl+M | Red |
 | 14 | Sleep | Dark blue |
 | 15 | Ctrl+Shift+Esc | Purple |
+
+## `Layers` - Multi-layer functions.
+
+* Layer 1 - media controls, Ctrl+M
+* Layer 2 - Launch apps by Start menu search
+* Layer 3 - Windows/System and power options
+* Layer 4 - Onboard/other
