@@ -137,6 +137,7 @@ def go_to_sleep():
 
   for key in keys:
     key.set_led(*COLOR_OFF)
+  keys[0].set_led(2, 2, 2)
 
 #
 # Flash a key to confirm an action.
@@ -258,11 +259,11 @@ def main():
       go_to_sleep()
 
     # Do less work while sleeping
-    if is_sleeping:
-      keys[0].set_led(2, 2, 2)
-      time.sleep(1)
-      keybow.update()
-      keys[0].set_led(*COLOR_OFF)
-      time.sleep(1)
+    # if is_sleeping:
+    #   keys[0].set_led(2, 2, 2)
+    #   time.sleep(1)
+    #   keybow.update()
+    #   keys[0].set_led(*COLOR_OFF)
+    #   time.sleep(1)
 
 main()
