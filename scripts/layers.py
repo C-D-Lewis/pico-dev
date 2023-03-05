@@ -119,11 +119,11 @@ def launch_program(query):
 #
 def flash_confirm(key):
   key.set_led(*COLOR_FLASH)
-  sleep(0.05)
+  sleep(0.03)
   key.set_led(*COLOR_OFF)
-  sleep(0.05)
+  sleep(0.03)
   key.set_led(*COLOR_FLASH)
-  sleep(0.05)
+  sleep(0.03)
   key.set_led(*COLOR_OFF)
 
 #
