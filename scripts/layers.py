@@ -80,7 +80,7 @@ KEY_MAP = {
     13: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.S],
       'color': (0, 0, 32),
-      'custom': lambda: set_is_sleeping(True)
+      'custom': lambda: go_to_sleep()
     },
     14: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.R],
@@ -89,13 +89,13 @@ KEY_MAP = {
     15: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.U],
       'color': (32, 0, 0),
-      'custom': lambda: set_is_sleeping(True)
+      'custom': lambda: go_to_sleep()
     }
   },
   # Onboard?
   3: {
     15: {
-      'custom': lambda: set_is_sleeping(True),
+      'custom': lambda: go_to_sleep(),
       'color': (0, 0, 16)
     }
   }
@@ -127,20 +127,15 @@ def launch_program(query):
 #
 # Go to dark sleep state
 #
-def set_is_sleeping(new_state):
+def go_to_sleep():
   global is_sleeping
-  is_sleeping = new_state
+  is_sleeping = True
 
   # All off except smallest indication
-  if is_sleeping:
-    for key in keys:
-      key.set_led(*COLOR_OFF)
-      if key.number in INDEX_SELECTION_KEYS:
-        key.set_led(*COLOR_SLEEPING)
-    return
-  
-  # Back to life
-  set_layer(0)
+  for key in keys:
+    key.set_led(*COLOR_OFF)
+    if key.number in INDEX_SELECTION_KEYS:
+      key.set_led(*COLOR_SLEEPING)
 
 #
 # Flash a key to confirm an action.
@@ -187,6 +182,8 @@ def handle_key_press(key):
       set_layer(i / 4)
       key.set_led(*COLOR_SELECTED_LAYER)
 
+      global is_sleeping
+      is_sleeping = False
       return
 
   # Layer configured key
