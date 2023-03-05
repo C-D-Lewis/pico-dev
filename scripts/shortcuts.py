@@ -109,7 +109,7 @@ for key in keys:
 
   @keybow.on_release(key)
   def release_handler(key):
-    key.set_led(*KEY_MAP[key.number]['color'])
+    key.set_led(*config['color'])
 
 # Loop input detection forever
 while True:
