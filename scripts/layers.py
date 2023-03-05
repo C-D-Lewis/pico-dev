@@ -78,9 +78,13 @@ KEY_MAP = {
       'combo': (Keycode.GUI, Keycode.E),
       'color': (64, 64, 0)
     },
-    14: {
+    13: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.S],
       'color': (0, 0, 32)
+    },
+    14: {
+      'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.R],
+      'color': (0, 32, 0)
     },
     15: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.U],
