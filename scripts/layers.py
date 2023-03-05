@@ -8,15 +8,18 @@ from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.consumer_control_code import ConsumerControlCode
 from time import sleep
 
-# Set up Keybow
-keybow = PMK(Hardware())
-keys = keybow.keys
-keyboard = Keyboard(usb_hid.devices)
-layout = KeyboardLayoutUS(keyboard)
-consumer_control = ConsumerControl(usb_hid.devices)
-
-layer_index = 0
-is_sleeping = False
+# Index selection key numbers
+INDEX_SELECTION_KEYS = (0, 4, 8, 12)
+# Off color
+COLOR_OFF = (0, 0, 0)
+# Flash color
+COLOR_FLASH = (128, 128, 128)
+# White when selected layer
+COLOR_SELECTED_LAYER = (32, 32, 32)
+# White for unselected layer
+COLOR_UNSELECTED_LAYER = (4, 4, 4)
+# When sleeping
+COLOR_SLEEPING = (1, 1, 1)
 
 # Map of keys on each layer
 KEY_MAP = {
@@ -55,15 +58,15 @@ KEY_MAP = {
   # Applications
   1: {
     1: {
-      'custom': lambda: launch_program('spotify'),
+      'custom': lambda: run('spotify'),
       'color': (0, 64, 0)
     },
     2: {
-      'custom': lambda: launch_program('steam'),
+      'custom': lambda: run('steam'),
       'color': (0, 0, 16)
     },
     3: {
-      'custom': lambda: launch_program('discord'),
+      'custom': lambda: run('discord'),
       'color': (0, 32, 64)
     }
   },
@@ -100,23 +103,21 @@ KEY_MAP = {
     }
   }
 }
-# Index selection key numbers
-INDEX_SELECTION_KEYS = (0, 4, 8, 12)
-# Off color
-COLOR_OFF = (0, 0, 0)
-# Flash color
-COLOR_FLASH = (128, 128, 128)
-# White when selected layer
-COLOR_SELECTED_LAYER = (32, 32, 32)
-# White for unselected layer
-COLOR_UNSELECTED_LAYER = (4, 4, 4)
-# When sleeping
-COLOR_SLEEPING = (1, 1, 1)
+
+# Set up Keybow
+keybow = PMK(Hardware())
+keys = keybow.keys
+keyboard = Keyboard(usb_hid.devices)
+layout = KeyboardLayoutUS(keyboard)
+consumer_control = ConsumerControl(usb_hid.devices)
+
+current_layer = 0
+is_sleeping = False
 
 #
 # Launch a program via Start menu query
 #
-def launch_program(query):
+def run(query):
   keyboard.press(Keycode.GUI)
   keyboard.release_all()
   sleep(0.2)
@@ -131,11 +132,8 @@ def go_to_sleep():
   global is_sleeping
   is_sleeping = True
 
-  # All off except smallest indication
   for key in keys:
     key.set_led(*COLOR_OFF)
-    if key.number in INDEX_SELECTION_KEYS:
-      key.set_led(*COLOR_SLEEPING)
 
 #
 # Flash a key to confirm an action.
@@ -153,8 +151,8 @@ def flash_confirm(key):
 # Attach handler functions to all of the keys for this layer.
 #
 def set_layer(new_layer):
-  global layer_index
-  layer_index = new_layer
+  global current_layer
+  current_layer = new_layer
 
   # Update colors
   for key in keys:
@@ -162,47 +160,46 @@ def set_layer(new_layer):
 
     # Update layer indicator
     if key.number in INDEX_SELECTION_KEYS:
-      key.set_led(*COLOR_UNSELECTED_LAYER)
-      if key.number / 4 == layer_index:
-        key.set_led(*COLOR_SELECTED_LAYER)
+      key.set_led(*COLOR_SELECTED_LAYER if key.number / 4 == current_layer else COLOR_UNSELECTED_LAYER)
 
     # Not configured
-    if key.number not in KEY_MAP[layer_index]:
+    if key.number not in KEY_MAP[current_layer]:
       continue
 
-    key.set_led(*KEY_MAP[layer_index][key.number]['color'])
+    key.set_led(*KEY_MAP[current_layer][key.number]['color'])
 
 #
 # Handle a key press event
 #
 def handle_key_press(key):
-  # Layer select
-  for i in INDEX_SELECTION_KEYS:
-    if key.number == i:
-      set_layer(i / 4)
-      key.set_led(*COLOR_SELECTED_LAYER)
+  global is_sleeping
 
-      global is_sleeping
-      is_sleeping = False
-      return
+  # Layer select wakes
+  if key.number == 0:
+    is_sleeping = False
+
+  if is_sleeping:
+    return
+
+  # Layer select
+  if key.number in INDEX_SELECTION_KEYS:
+    set_layer(key.number / 4)
+    key.set_led(*COLOR_SELECTED_LAYER)
+    return
 
   # Layer configured key
-  config = KEY_MAP[layer_index][key.number]
+  config = KEY_MAP[current_layer][key.number]
 
-  # Control code
   if 'control_code' in config:
     consumer_control.send(config['control_code'])
   
-  # Text string
   if 'text' in config:
     layout.write(config['text'])
   
-  # Key combinationn
   if 'combo' in config:
     keyboard.press(*config['combo'])
     keyboard.release_all()
 
-  # Sequence of key combinations
   if 'sequence' in config:
     for item in config['sequence']:
       if isinstance(item, tuple):
@@ -212,7 +209,6 @@ def handle_key_press(key):
       sleep(0.2)
       keyboard.release_all()
 
-  # Custom function or followup
   if 'custom' in config:
     config['custom']()
 
@@ -220,8 +216,7 @@ def handle_key_press(key):
 for key in keys:
   @keybow.on_press(key)
   def press_handler(key):
-    # Not configured
-    if key.number not in KEY_MAP[layer_index] and key.number not in INDEX_SELECTION_KEYS:
+    if key.number not in KEY_MAP[current_layer] and key.number not in INDEX_SELECTION_KEYS:
       return
 
     handle_key_press(key)
@@ -229,25 +224,30 @@ for key in keys:
 
   @keybow.on_release(key)
   def release_handler(key):
-    # Not configured
-    if key.number not in KEY_MAP[layer_index] and key.number not in INDEX_SELECTION_KEYS:
-      return
-
-    # Layer selection key
-    if key.number in INDEX_SELECTION_KEYS:
-      key.set_led(*COLOR_SELECTED_LAYER if key.number / 4 == layer_index else COLOR_UNSELECTED_LAYER)
-      return
-    
-    # Now sleeping, do not restore color
     if is_sleeping:
       return
 
+    if key.number not in KEY_MAP[current_layer] and key.number not in INDEX_SELECTION_KEYS:
+      return
+
+    if key.number in INDEX_SELECTION_KEYS:
+      key.set_led(*COLOR_SELECTED_LAYER if key.number / 4 == current_layer else COLOR_UNSELECTED_LAYER)
+      return
+
     # Layer configured key
-    key.set_led(*KEY_MAP[layer_index][key.number]['color'])
+    key.set_led(*KEY_MAP[current_layer][key.number]['color'])
 
 def main():
   set_layer(0)
   while True:
     keybow.update()
+
+    # Do less work while sleeping
+    if is_sleeping:
+      keys[0].set_led(2, 2, 2)
+      sleep(1)
+      keybow.update()
+      keys[0].set_led(*COLOR_OFF)
+      sleep(1)
 
 main()
