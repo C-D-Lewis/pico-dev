@@ -6,10 +6,12 @@ from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
 from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.consumer_control_code import ConsumerControlCode
-from time import sleep
+import time
 
 # Index selection key numbers
 INDEX_SELECTION_KEYS = (0, 4, 8, 12)
+# Seconds until autosleep
+SLEEP_TIMEOUT_S = 60
 # Off color
 COLOR_OFF = (0, 0, 0)
 # Flash color
@@ -113,6 +115,7 @@ consumer_control = ConsumerControl(usb_hid.devices)
 
 current_layer = 0
 is_sleeping = False
+last_used = time.time()
 
 #
 # Launch a program via Start menu query
@@ -120,9 +123,9 @@ is_sleeping = False
 def run(query):
   keyboard.press(Keycode.GUI)
   keyboard.release_all()
-  sleep(0.2)
+  time.sleep(0.2)
   layout.write(query)
-  sleep(1)
+  time.sleep(1)
   layout.write('\n')
 
 #
@@ -140,11 +143,11 @@ def go_to_sleep():
 #
 def flash_confirm(key):
   key.set_led(*COLOR_FLASH)
-  sleep(0.03)
+  time.sleep(0.03)
   key.set_led(*COLOR_OFF)
-  sleep(0.03)
+  time.sleep(0.03)
   key.set_led(*COLOR_FLASH)
-  sleep(0.03)
+  time.sleep(0.03)
   key.set_led(*COLOR_OFF)
 
 #
@@ -173,6 +176,9 @@ def set_layer(new_layer):
 #
 def handle_key_press(key):
   global is_sleeping
+  global last_used
+
+  last_used = time.time()
 
   # Layer select wakes
   if key.number == 0:
@@ -206,7 +212,7 @@ def handle_key_press(key):
         keyboard.press(*item)
       else:
         keyboard.press(item)
-      sleep(0.2)
+      time.sleep(0.2)
       keyboard.release_all()
 
   if 'custom' in config:
@@ -237,17 +243,26 @@ for key in keys:
     # Layer configured key
     key.set_led(*KEY_MAP[current_layer][key.number]['color'])
 
+#
+# The main function
+#
 def main():
   set_layer(0)
+
   while True:
     keybow.update()
+
+    # Time out
+    now = time.time()
+    if now - last_used > SLEEP_TIMEOUT_S and not is_sleeping:
+      go_to_sleep()
 
     # Do less work while sleeping
     if is_sleeping:
       keys[0].set_led(2, 2, 2)
-      sleep(1)
+      time.sleep(1)
       keybow.update()
       keys[0].set_led(*COLOR_OFF)
-      sleep(1)
+      time.sleep(1)
 
 main()
