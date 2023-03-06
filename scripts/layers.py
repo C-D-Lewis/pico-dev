@@ -120,6 +120,7 @@ consumer_control = ConsumerControl(usb_hid.devices)
 current_layer = 0
 is_sleeping = False
 last_used = time.time()
+last_second_index = 0
 
 #
 # Launch a program via Start menu query
@@ -234,26 +235,45 @@ def sleep_pulse():
   time.sleep(1)
 
 #
+# Get clock LED digit for hours
+#
+def get_hour_digit(hours):
+  index = math.floor(math.floor((hours * 100) / 12) / 100 * len(DIGIT_LED_SEQ))
+  return DIGIT_LED_SEQ[index]
+
+#
+# Get clock LED digit for minutes
+#
+def get_minute_seconds_digit(minutes):
+  index = math.floor(math.floor((minutes * 100) / 60) / 100 * len(DIGIT_LED_SEQ))
+  return DIGIT_LED_SEQ[index]
+
+#
 # Show clock animation
 #
 def show_clock():
+  global last_second_index
+
   # (year, month, mday, hour, minute, second, ...)
   now = time.localtime()
   hours = now[3] - 12 if now[3] > 12 else now[3]
   minutes = now[4]
   seconds = now[5]
 
-  # Only update for new minute
-  if (seconds != 0):
-    return
+  hours_index = get_hour_digit(hours)
+  minutes_index = get_minute_seconds_digit(minutes)
+  seconds_index = get_minute_seconds_digit(seconds)
 
-  for key in keys:
-    key.set_led(*COLOR_OFF)
+  # Prevent flickering
+  if seconds_index != last_second_index:
+    last_second_index = seconds_index
+    for key in keys:
+      key.set_led(*COLOR_OFF)
 
-  hours_index = math.floor(math.floor((hours * 100) / 24) / 100 * 12)
-  keys[DIGIT_LED_SEQ[hours_index]].set_led(32, 0, 0)
-  mins_index = math.floor(math.floor((minutes * 100) / 60) / 100 * 12)
-  keys[DIGIT_LED_SEQ[mins_index]].set_led(0, 0, 32)
+  keys[hours_index].set_led(32, 0, 0)
+  keys[minutes_index].set_led(0, 0, 32)
+  keys[seconds_index].set_led(32, 32, 0)
+
 
 #
 # Animation played on startup
