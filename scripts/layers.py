@@ -13,6 +13,9 @@ import math
 INDEX_SELECTION_KEYS = (0, 4, 8, 12)
 # Seconds until autosleep
 SLEEP_TIMEOUT_S = 60
+# Clock digit LED sequence
+DIGIT_LED_SEQ = [2, 3, 7, 11, 15, 14, 13, 12, 8, 4, 0, 1]
+
 # Off color
 COLOR_OFF = (0, 0, 0)
 # Flash color
@@ -61,15 +64,15 @@ KEY_MAP = {
   # Applications
   1: {
     1: {
-      'custom': lambda: run('spotify'),
+      'custom': lambda: run_program('spotify'),
       'color': (0, 64, 0)
     },
     2: {
-      'custom': lambda: run('steam'),
+      'custom': lambda: run_program('steam'),
       'color': (0, 0, 16)
     },
     3: {
-      'custom': lambda: run('discord'),
+      'custom': lambda: run_program('discord'),
       'color': (0, 32, 64)
     }
   },
@@ -121,7 +124,7 @@ last_used = time.time()
 #
 # Launch a program via Start menu query
 #
-def run(query):
+def run_program(query):
   keyboard.press(Keycode.GUI)
   keyboard.release_all()
   time.sleep(0.2)
@@ -234,23 +237,41 @@ def sleep_pulse():
 # Show clock animation
 #
 def show_clock():
-  digit_leds = [0, 1, 2, 3, 7, 11, 15, 14, 13, 12, 8, 4]
+  # (year, month, mday, hour, minute, second, ...)
+  now = time.localtime()
+  hours = now[3] - 12 if now[3] > 12 else now[3]
+  minutes = now[4]
+  seconds = now[5]
+
+  # Only update for new minute
+  if (seconds != 0):
+    return
 
   for key in keys:
     key.set_led(*COLOR_OFF)
 
-  # (year, month, mday, hour, minute, second, ...)
-  now = time.localtime()
-  hours = now[3]
-  minutes = now[4]
-  seconds = now[5]
+  hours_index = math.floor(math.floor((hours * 100) / 24) / 100 * 12)
+  keys[DIGIT_LED_SEQ[hours_index]].set_led(32, 0, 0)
+  mins_index = math.floor(math.floor((minutes * 100) / 60) / 100 * 12)
+  keys[DIGIT_LED_SEQ[mins_index]].set_led(0, 0, 32)
 
-  hours_index = math.floor(math.floor((hours * 100) / 24) / 100 * len(digit_leds))
-  keys[hours_index].set_led(32, 0, 0)
-  mins_index = math.floor(math.floor((minutes * 100) / 60) / 100 * len(digit_leds))
-  keys[mins_index].set_led(0, 0, 32)
-  secs_index = math.floor(math.floor((seconds * 100) / 60) / 100 * len(digit_leds))
-  keys[secs_index].set_led(0, 32, 32)
+#
+# Animation played on startup
+#
+def boot_animation():
+  keys[0].set_led(*COLOR_SELECTED_LAYER)
+  time.sleep(0.2)
+  keys[0].set_led(*COLOR_UNSELECTED_LAYER)
+  keys[4].set_led(*COLOR_SELECTED_LAYER)
+  time.sleep(0.2)
+  keys[4].set_led(*COLOR_UNSELECTED_LAYER)
+  keys[8].set_led(*COLOR_SELECTED_LAYER)
+  time.sleep(0.2)
+  keys[8].set_led(*COLOR_UNSELECTED_LAYER)
+  keys[12].set_led(*COLOR_SELECTED_LAYER)
+  time.sleep(0.2)
+  keys[12].set_led(*COLOR_UNSELECTED_LAYER)
+  time.sleep(0.2)
 
 # Attach handlers
 for key in keys:
@@ -281,8 +302,12 @@ for key in keys:
 # The main function
 #
 def main():
+  boot_animation()
+
+  # Default layer
   set_layer(0)
 
+  # Wait for button presses
   while True:
     keybow.update()
 
@@ -292,9 +317,9 @@ def main():
       go_to_sleep()
 
     # if is_sleeping:
-      # sleep_pulse()
+    #   time.sleep(1)
 
-      # time.sleep(1)
-      # show_clock()
+      # sleep_pulse()
+      # show_clock()  # TODO: Once NTP available on WiFi
 
 main()
