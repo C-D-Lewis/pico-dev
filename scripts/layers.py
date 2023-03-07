@@ -1,19 +1,21 @@
-from pmk import PMK
-from pmk.platform.rgbkeypadbase import RGBKeypadBase as Hardware
+from adafruit_hid.consumer_control import ConsumerControl
+from adafruit_hid.consumer_control_code import ConsumerControlCode
 from adafruit_hid.keyboard import Keyboard
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
-from adafruit_hid.consumer_control import ConsumerControl
-from adafruit_hid.consumer_control_code import ConsumerControlCode
-import time
-import math
-import usb_hid
-import os
-import wifi
-import socketpool
-import ipaddress
-import ssl
+from pmk import PMK
+from pmk.platform.rgbkeypadbase import RGBKeypadBase as Hardware
+import adafruit_ntp
 import adafruit_requests
+import ipaddress
+import math
+import os
+import rtc
+import socketpool
+import ssl
+import time
+import usb_hid
+import wifi
 
 # Index selection key numbers
 INDEX_SELECTION_KEYS = (0, 4, 8, 12)
@@ -31,7 +33,7 @@ COLOR_SELECTED_LAYER = (32, 32, 32)
 # White for unselected layer
 COLOR_UNSELECTED_LAYER = (4, 4, 4)
 # When sleeping
-COLOR_SLEEPING = (1, 1, 1)
+COLOR_SLEEPING = (2, 2, 2)
 
 # Map of keys on each layer
 KEY_MAP = {
@@ -107,7 +109,7 @@ KEY_MAP = {
       'custom': lambda: go_to_sleep()
     }
   },
-  # Onboard?
+  # Web?
   3: {
     15: {
       'custom': lambda: go_to_sleep(),
@@ -150,7 +152,7 @@ def go_to_sleep():
 
   for key in keys:
     key.set_led(*COLOR_OFF)
-  keys[0].set_led(2, 2, 2)
+  keys[0].set_led(*COLOR_SLEEPING)
 
 #
 # Flash a key to confirm an action.
@@ -278,10 +280,12 @@ def show_clock():
     for key in keys:
       key.set_led(*COLOR_OFF)
 
+  # Key to wake
+  keys[0].set_led(*COLOR_SLEEPING)
+
   keys[hours_index].set_led(32, 0, 0)
   keys[minutes_index].set_led(0, 0, 32)
   keys[seconds_index].set_led(32, 32, 0)
-
 
 #
 # Animation played on startup
@@ -311,6 +315,14 @@ def connect_wifi():
   wifi.radio.connect(os.getenv('WIFI_SSID'), os.getenv('WIFI_PASSWORD'))
   pool = socketpool.SocketPool(wifi.radio)
   session = adafruit_requests.Session(pool, ssl.create_default_context())
+
+#
+# Update time from NTP
+#
+def update_time():
+  ntp = adafruit_ntp.NTP(pool, tz_offset=0)
+  r = rtc.RTC()
+  r.datetime = ntp.datetime
 
 # Attach handlers
 for key in keys:
@@ -342,6 +354,8 @@ for key in keys:
 #
 def main():
   boot_animation()
+  connect_wifi()
+  update_time()
 
   # Default layer
   set_layer(0)
@@ -355,10 +369,10 @@ def main():
     if now - last_used > SLEEP_TIMEOUT_S and not is_sleeping:
       go_to_sleep()
 
-    # if is_sleeping:
-    #   time.sleep(1)
+    if is_sleeping:
+      time.sleep(1)
 
+      show_clock()
       # sleep_pulse()
-      # show_clock()  # TODO: Once NTP available on WiFi
 
 main()
