@@ -29,7 +29,7 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
 | 14 | Sleep | Dark blue |
 | 15 | Ctrl+Shift+Esc | Purple |
 
-## `Layers.py` - Multi-layer functions.
+## `layers.py` - Multi-layer functions.
 
 * Layer 1 - media controls
   * Prev/play/next
@@ -42,3 +42,7 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
   * Sleep/Reboot/Shutdown
 * Layer 4 - Onboard/other
   * Sleep keypad
+
+## `widi_test.py` - Test Pico W WiFi connection
+
+Requires `settings.toml` with `WIFI_SSID` and `WIFI_PASSWORD`

@@ -1,6 +1,5 @@
 from pmk import PMK
 from pmk.platform.rgbkeypadbase import RGBKeypadBase as Hardware
-import usb_hid
 from adafruit_hid.keyboard import Keyboard
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
@@ -8,6 +7,13 @@ from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.consumer_control_code import ConsumerControlCode
 import time
 import math
+import usb_hid
+import os
+import wifi
+import socketpool
+import ipaddress
+import ssl
+import adafruit_requests
 
 # Index selection key numbers
 INDEX_SELECTION_KEYS = (0, 4, 8, 12)
@@ -121,6 +127,8 @@ current_layer = 0
 is_sleeping = False
 last_used = time.time()
 last_second_index = 0
+sockets = None
+session = None
 
 #
 # Launch a program via Start menu query
@@ -292,6 +300,17 @@ def boot_animation():
   time.sleep(0.2)
   keys[12].set_led(*COLOR_UNSELECTED_LAYER)
   time.sleep(0.2)
+
+#
+# Connect to WiFi
+#
+def connect_wifi():
+  global pool
+  global session
+
+  wifi.radio.connect(os.getenv('WIFI_SSID'), os.getenv('WIFI_PASSWORD'))
+  pool = socketpool.SocketPool(wifi.radio)
+  session = adafruit_requests.Session(pool, ssl.create_default_context())
 
 # Attach handlers
 for key in keys:
