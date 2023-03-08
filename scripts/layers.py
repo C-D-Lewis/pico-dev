@@ -27,7 +27,13 @@ DIGIT_LED_SEQ = [2, 3, 7, 11, 15, 14, 13, 12, 8, 4, 0, 1]
 # Off color
 COLOR_OFF = (0, 0, 0)
 # Flash color
-COLOR_FLASH = (128, 128, 128)
+COLOR_WHITE = (128, 128, 128)
+# Mid red color
+COLOR_RED = (64, 0, 0)
+# Mid green color
+COLOR_GREEN = (0, 64, 0)
+# Mid yellow color
+COLOR_YELLOW = (64, 64, 0)
 # White when selected layer
 COLOR_SELECTED_LAYER = (32, 32, 32)
 # White for unselected layer
@@ -45,7 +51,7 @@ KEY_MAP = {
     },
     2: {
       'control_code': ConsumerControlCode.PLAY_PAUSE,
-      'color': (0, 64, 0)
+      'color': COLOR_GREEN
     },
     3: {
       'control_code': ConsumerControlCode.SCAN_NEXT_TRACK,
@@ -53,27 +59,27 @@ KEY_MAP = {
     },
     5: {
       'control_code': ConsumerControlCode.VOLUME_DECREMENT,
-      'color': (64, 64, 0)
+      'color': COLOR_YELLOW
     },
     6: {
       'control_code': ConsumerControlCode.MUTE,
-      'color': (64, 0, 0)
+      'color': COLOR_RED
     },
     7: {
       'control_code': ConsumerControlCode.VOLUME_INCREMENT,
-      'color': (64, 64, 0)
+      'color': COLOR_YELLOW
     },
     # Mute Discord mic
     13: {
       'combo': (Keycode.CONTROL, Keycode.M),
-      'color': (64, 0, 0)
+      'color': COLOR_RED
     }
   },
   # Applications
   1: {
     1: {
       'custom': lambda: run_program('spotify'),
-      'color': (0, 64, 0)
+      'color': COLOR_GREEN
     },
     2: {
       'custom': lambda: run_program('steam'),
@@ -92,7 +98,7 @@ KEY_MAP = {
     },
     2: {
       'combo': (Keycode.GUI, Keycode.E),
-      'color': (64, 64, 0)
+      'color': COLOR_YELLOW
     },
     13: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.S],
@@ -109,7 +115,7 @@ KEY_MAP = {
       'custom': lambda: go_to_sleep()
     }
   },
-  # Web?
+  # Web? OR NUMPAD!
   3: {
     15: {
       'custom': lambda: go_to_sleep(),
@@ -158,11 +164,11 @@ def go_to_sleep():
 # Flash a key to confirm an action.
 #
 def flash_confirm(key):
-  key.set_led(*COLOR_FLASH)
+  key.set_led(*COLOR_WHITE)
   time.sleep(0.03)
   key.set_led(*COLOR_OFF)
   time.sleep(0.03)
-  key.set_led(*COLOR_FLASH)
+  key.set_led(*COLOR_WHITE)
   time.sleep(0.03)
   key.set_led(*COLOR_OFF)
 
@@ -287,23 +293,6 @@ def show_clock():
   keys[minutes_index].set_led(0, 0, 32)
   keys[seconds_index].set_led(32, 32, 0)
 
-#
-# Animation played on startup
-#
-def boot_animation():
-  keys[0].set_led(*COLOR_SELECTED_LAYER)
-  time.sleep(0.2)
-  keys[0].set_led(*COLOR_UNSELECTED_LAYER)
-  keys[4].set_led(*COLOR_SELECTED_LAYER)
-  time.sleep(0.2)
-  keys[4].set_led(*COLOR_UNSELECTED_LAYER)
-  keys[8].set_led(*COLOR_SELECTED_LAYER)
-  time.sleep(0.2)
-  keys[8].set_led(*COLOR_UNSELECTED_LAYER)
-  keys[12].set_led(*COLOR_SELECTED_LAYER)
-  time.sleep(0.2)
-  keys[12].set_led(*COLOR_UNSELECTED_LAYER)
-  time.sleep(0.2)
 
 #
 # Connect to WiFi
@@ -312,17 +301,41 @@ def connect_wifi():
   global pool
   global session
 
+  keys[0].set_led(*COLOR_YELLOW)
+  time.sleep(0.2)
   wifi.radio.connect(os.getenv('WIFI_SSID'), os.getenv('WIFI_PASSWORD'))
   pool = socketpool.SocketPool(wifi.radio)
   session = adafruit_requests.Session(pool, ssl.create_default_context())
+  keys[0].set_led(*COLOR_GREEN)
 
 #
 # Update time from NTP
 #
 def update_time():
+  keys[4].set_led(*COLOR_YELLOW)
+  time.sleep(0.2)
   ntp = adafruit_ntp.NTP(pool, tz_offset=0)
   r = rtc.RTC()
   r.datetime = ntp.datetime
+  keys[4].set_led(*COLOR_GREEN)
+
+#
+# Animation played on startup with integrated steps
+#
+def boot_sequence():
+  connect_wifi()
+  time.sleep(0.25)
+  keys[0].set_led(*COLOR_UNSELECTED_LAYER)
+  update_time()
+  time.sleep(0.25)
+  keys[4].set_led(*COLOR_UNSELECTED_LAYER)
+  keys[8].set_led(*COLOR_SELECTED_LAYER)
+  time.sleep(0.25)
+  keys[8].set_led(*COLOR_UNSELECTED_LAYER)
+  keys[12].set_led(*COLOR_SELECTED_LAYER)
+  time.sleep(0.25)
+  keys[12].set_led(*COLOR_UNSELECTED_LAYER)
+  time.sleep(0.25)
 
 # Attach handlers
 for key in keys:
@@ -353,9 +366,8 @@ for key in keys:
 # The main function
 #
 def main():
-  boot_animation()
-  connect_wifi()
-  update_time()
+  boot_sequence()
+  time.sleep(0.5)
 
   # Default layer
   set_layer(0)
@@ -370,7 +382,7 @@ def main():
       go_to_sleep()
 
     if is_sleeping:
-      time.sleep(1)
+      # time.sleep(1)
 
       show_clock()
       # sleep_pulse()
