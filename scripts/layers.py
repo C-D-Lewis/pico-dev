@@ -23,6 +23,8 @@ INDEX_SELECTION_KEYS = (0, 4, 8, 12)
 SLEEP_TIMEOUT_S = 60
 # Clock digit LED sequence
 DIGIT_LED_SEQ = [2, 3, 7, 11, 15, 14, 13, 12, 8, 4, 0, 1]
+# Total number of digits
+TOTAL_DIGITS = 12
 
 # Off color
 COLOR_OFF = (0, 0, 0)
@@ -32,6 +34,8 @@ COLOR_WHITE = (128, 128, 128)
 COLOR_RED = (64, 0, 0)
 # Mid green color
 COLOR_GREEN = (0, 64, 0)
+# Mid blue color
+COLOR_BLUE = (0, 0, 64)
 # Mid yellow color
 COLOR_YELLOW = (64, 64, 0)
 # White when selected layer
@@ -115,7 +119,7 @@ KEY_MAP = {
       'custom': lambda: go_to_sleep()
     }
   },
-  # Web? OR NUMPAD!
+  # Utility (web? numpad?)
   3: {
     15: {
       'custom': lambda: go_to_sleep(),
@@ -251,17 +255,23 @@ def sleep_pulse():
   time.sleep(1)
 
 #
+# Make a color darker
+#
+def darker(color):
+  return (color[0] / 2, color[1] / 2, color[2] / 2)
+
+#
 # Get clock LED digit for hours
 #
 def get_hour_digit(hours):
-  index = math.floor(math.floor((hours * 100) / 12) / 100 * len(DIGIT_LED_SEQ))
+  index = math.floor(math.floor((hours * 100) / 12) / 100 * TOTAL_DIGITS)
   return DIGIT_LED_SEQ[index]
 
 #
 # Get clock LED digit for minutes
 #
 def get_minute_seconds_digit(minutes):
-  index = math.floor(math.floor((minutes * 100) / 60) / 100 * len(DIGIT_LED_SEQ))
+  index = math.floor(math.floor((minutes * 100) / 60) / 100 * TOTAL_DIGITS)
   return DIGIT_LED_SEQ[index]
 
 #
@@ -276,6 +286,7 @@ def show_clock():
   minutes = now[4]
   seconds = now[5]
 
+  # Indices around the face
   hours_index = get_hour_digit(hours)
   minutes_index = get_minute_seconds_digit(minutes)
   seconds_index = get_minute_seconds_digit(seconds)
@@ -289,9 +300,10 @@ def show_clock():
   # Key to wake
   keys[0].set_led(*COLOR_SLEEPING)
 
-  keys[hours_index].set_led(32, 0, 0)
-  keys[minutes_index].set_led(0, 0, 32)
-  keys[seconds_index].set_led(32, 32, 0)
+  # Hands
+  keys[hours_index].set_led(*darker(COLOR_RED))
+  keys[minutes_index].set_led(*darker(COLOR_BLUE))
+  keys[seconds_index].set_led(*darker(COLOR_YELLOW))
 
 
 #
