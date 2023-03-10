@@ -16,6 +16,7 @@ import ssl
 import time
 import usb_hid
 import wifi
+import random
 
 # Index selection key numbers
 INDEX_SELECTION_KEYS = (0, 4, 8, 12)
@@ -47,7 +48,7 @@ COLOR_SLEEPING = (2, 2, 2)
 
 # Map of keys on each layer
 KEY_MAP = {
-  # Media
+  # Media/utilty
   0: {
     1: {
       'control_code': ConsumerControlCode.SCAN_PREVIOUS_TRACK,
@@ -77,6 +78,10 @@ KEY_MAP = {
     13: {
       'combo': (Keycode.CONTROL, Keycode.M),
       'color': COLOR_RED
+    },
+    15: {
+      'custom': lambda: roll_d6(),
+      'color': COLOR_WHITE
     }
   },
   # Applications
@@ -141,6 +146,17 @@ last_used = time.time()
 last_second_index = 0
 sockets = None
 session = None
+
+#
+# Roll a D6. Flash some numbers, then settle
+#
+def roll_d6():
+  count = 0
+  while count < 10:
+    result = random.randint(1, 6)
+    keys[result].set_led(0, 64, 64)
+    time.sleep(0.2)
+    count = count + 1
 
 #
 # Launch a program via Start menu query
@@ -264,6 +280,7 @@ def darker(color):
 # Get clock LED digit for hours
 #
 def get_hour_digit(hours):
+  # FIXME out of range when hours=12
   index = math.floor(math.floor((hours * 100) / 12) / 100 * TOTAL_DIGITS)
   return DIGIT_LED_SEQ[index]
 
