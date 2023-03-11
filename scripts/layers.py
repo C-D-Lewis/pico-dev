@@ -315,7 +315,6 @@ def darker(color):
 # Get clock LED digit for hours
 #
 def get_hour_digit(hours):
-  # FIXME out of range when hours=12
   index = math.floor(math.floor((hours * 100) / 12) / 100 * TOTAL_DIGITS)
   return DIGIT_LED_SEQ[index]
 
@@ -334,7 +333,7 @@ def show_clock():
 
   # (year, month, mday, hour, minute, second, ...)
   now = time.localtime()
-  hours = now[3] - 12 if now[3] > 12 else now[3]
+  hours = now[3] - 12 if now[3] >= 12 else now[3]
   minutes = now[4]
   seconds = now[5]
 
