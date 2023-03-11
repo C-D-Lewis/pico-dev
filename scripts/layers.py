@@ -26,6 +26,8 @@ SLEEP_TIMEOUT_S = 60
 DIGIT_LED_SEQ = [2, 3, 7, 11, 15, 14, 13, 12, 8, 4, 0, 1]
 # Total number of digits
 TOTAL_DIGITS = 12
+# Keys used for D6 display
+FUNCTION_AREA_KEYS = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]
 
 # Off color
 COLOR_OFF = (0, 0, 0)
@@ -148,14 +150,47 @@ sockets = None
 session = None
 
 #
+# Set some LEDs to same color
+#
+def set_leds(arr, color):
+  for i in arr:
+    keys[i].set_led(*color)
+
+#
+# Show D6 result visually
+#
+def show_d6_result(result):
+  for index in FUNCTION_AREA_KEYS:
+    keys[index].set_led(*COLOR_OFF)
+
+  if result == 1:
+    set_leds([6], COLOR_WHITE)
+  elif result == 2:
+    set_leds([2, 10], COLOR_WHITE)
+  elif result == 3:
+    set_leds([9, 6, 3], COLOR_WHITE)
+  elif result == 4:
+    set_leds([1, 3, 9, 11], COLOR_WHITE)
+  elif result == 5:
+    set_leds([1, 3, 9, 11, 6], COLOR_WHITE)
+  elif result == 6:
+    set_leds([1, 3, 5, 7, 9, 11], COLOR_WHITE)
+
+#
 # Roll a D6. Flash some numbers, then settle
 #
 def roll_d6():
   count = 0
-  while count < 10:
-    result = random.randint(1, 6)
-    keys[result].set_led(0, 64, 64)
-    time.sleep(0.2)
+  result = 0
+  while count < 20:
+    next_result = random.randint(1, 6)
+    while next_result == result:
+      next_result = random.randint(1, 6)
+
+    result = next_result
+    show_d6_result(result)
+
+    time.sleep(0.05 + (0.01 * count))
     count = count + 1
 
 #
@@ -407,7 +442,7 @@ def main():
 
     # Time out
     now = time.time()
-    if now - last_used > SLEEP_TIMEOUT_S and not is_sleeping:
+    if now - last_used > SLEEP_TIMEOUT_S and not is_sleeping and now > SLEEP_TIMEOUT_S:
       go_to_sleep()
 
     if is_sleeping:
