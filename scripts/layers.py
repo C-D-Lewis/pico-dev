@@ -291,6 +291,7 @@ def handle_key_press(key):
         keyboard.press(item)
       time.sleep(0.2)
       keyboard.release_all()
+      time.sleep(0.5)
 
   if 'custom' in config:
     config['custom']()
@@ -333,12 +334,13 @@ def show_clock():
 
   # (year, month, mday, hour, minute, second, ...)
   now = time.localtime()
-  hours = now[3] - 12 if now[3] >= 12 else now[3]
+  hours = now[3]
+  hours_12h = now[3] - 12 if now[3] >= 12 else now[3]
   minutes = now[4]
   seconds = now[5]
 
   # Indices around the face
-  hours_index = get_hour_digit(hours)
+  hours_index = get_hour_digit(hours_12h)
   minutes_index = get_minute_seconds_digit(minutes)
   seconds_index = get_minute_seconds_digit(seconds)
 
@@ -351,11 +353,12 @@ def show_clock():
   # Key to wake
   keys[0].set_led(*COLOR_SLEEPING)
 
-  # Hands
-  keys[hours_index].set_led(*darker(COLOR_RED))
-  keys[minutes_index].set_led(*darker(COLOR_BLUE))
-  keys[seconds_index].set_led(*darker(COLOR_YELLOW))
-
+  # Don't dazzle at night
+  if hours >= 9 and hours <= 23:
+    # Hands
+    keys[hours_index].set_led(*darker(COLOR_RED))
+    keys[minutes_index].set_led(*darker(COLOR_BLUE))
+    keys[seconds_index].set_led(*darker(COLOR_YELLOW))
 
 #
 # Connect to WiFi
@@ -445,9 +448,6 @@ def main():
       go_to_sleep()
 
     if is_sleeping:
-      # time.sleep(1)
-
       show_clock()
-      # sleep_pulse()
 
 main()
