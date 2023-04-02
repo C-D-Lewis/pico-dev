@@ -48,6 +48,9 @@ COLOR_UNSELECTED_LAYER = (4, 4, 4)
 # When sleeping
 COLOR_SLEEPING = (2, 2, 2)
 
+# Timezone offset in hours, such as BST
+TZ_OFFSET_H = 1
+
 # Map of keys on each layer
 KEY_MAP = {
   # Media/utilty
@@ -334,8 +337,9 @@ def show_clock():
 
   # (year, month, mday, hour, minute, second, ...)
   now = time.localtime()
-  hours = now[3]
-  hours_12h = now[3] - 12 if now[3] >= 12 else now[3]
+  hours = now[3] + TZ_OFFSET_H
+  hours_24h = hours
+  hours_12h = hours - 12 if hours >= 12 else hours
   minutes = now[4]
   seconds = now[5]
 
@@ -354,7 +358,7 @@ def show_clock():
   keys[0].set_led(*COLOR_SLEEPING)
 
   # Don't dazzle at night
-  if hours >= 9 and hours <= 23:
+  if hours_24h >= (9 + TZ_OFFSET_H) and hours_24h <= (23 + TZ_OFFSET_H):
     # Hands
     keys[hours_index].set_led(*darker(COLOR_RED))
     keys[minutes_index].set_led(*darker(COLOR_BLUE))
@@ -383,6 +387,8 @@ def update_time():
   ntp = adafruit_ntp.NTP(pool, tz_offset=0)
   r = rtc.RTC()
   r.datetime = ntp.datetime
+  # os.environ['TZ'] = 'Europe/London'
+  # time.tzset()
   keys[4].set_led(*COLOR_GREEN)
 
 #
