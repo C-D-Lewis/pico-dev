@@ -300,16 +300,6 @@ def handle_key_press(key):
     config['custom']()
 
 #
-# Pulse while asleep
-#
-def sleep_pulse():
-  keys[0].set_led(2, 2, 2)
-  time.sleep(1)
-  keybow.update()
-  keys[0].set_led(*COLOR_OFF)
-  time.sleep(1)
-
-#
 # Make a color darker
 #
 def darker(color):
@@ -358,7 +348,7 @@ def show_clock():
   keys[0].set_led(*COLOR_SLEEPING)
 
   # Don't dazzle at night
-  if hours_24h >= (9 + TZ_OFFSET_H) and hours_24h <= (23 + TZ_OFFSET_H):
+  if hours_24h >= 9 and hours_24h <= 23:
     # Hands
     keys[hours_index].set_led(*darker(COLOR_RED))
     keys[minutes_index].set_led(*darker(COLOR_BLUE))
