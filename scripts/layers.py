@@ -327,7 +327,7 @@ def show_clock():
 
   # (year, month, mday, hour, minute, second, ...)
   now = time.localtime()
-  hours = now[3] + TZ_OFFSET_H
+  hours = (now[3] + TZ_OFFSET_H) % 24
   hours_24h = hours
   hours_12h = hours - 12 if hours >= 12 else hours
   minutes = now[4]
