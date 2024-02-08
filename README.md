@@ -41,8 +41,15 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
   * Task Manager/Explorer
   * Sleep/Reboot/Shutdown
 * Layer 4 - Onboard/other
+  * Toggle 'stay awake'
   * Sleep keypad
 
 ## `widi_test.py` - Test Pico W WiFi connection
 
 Requires `settings.toml` with `WIFI_SSID` and `WIFI_PASSWORD`
+
+Example:
+```
+WIFI_SSID = ""
+WIFI_PASSWORD = ""
+```

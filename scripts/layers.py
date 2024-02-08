@@ -121,7 +121,8 @@ KEY_MAP = {
     },
     14: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.R],
-      'color': (0, 32, 0)
+      'color': (0, 32, 0),
+      'custom': lambda: go_to_sleep()
     },
     15: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.U],
@@ -131,6 +132,10 @@ KEY_MAP = {
   },
   # Utility (web? numpad?)
   3: {
+    14: {
+      'custom': lambda: toggle_stay_awake(),
+      'color': (16, 16, 16)
+    },
     15: {
       'custom': lambda: go_to_sleep(),
       'color': (0, 0, 16)
@@ -147,6 +152,7 @@ consumer_control = ConsumerControl(usb_hid.devices)
 
 current_layer = 0
 is_sleeping = False
+stay_awake = False
 last_used = time.time()
 last_second_index = 0
 sockets = None
@@ -217,6 +223,17 @@ def go_to_sleep():
   for key in keys:
     key.set_led(*COLOR_OFF)
   keys[0].set_led(*COLOR_SLEEPING)
+
+#
+# Toggle stay awake mode
+#
+def toggle_stay_awake():
+  global stay_awake
+  stay_awake = not stay_awake
+
+  # Reset to layer 0 (long lived media controls)
+  if stay_awake:
+    set_layer(0)
 
 #
 # Flash a key to confirm an action.
@@ -440,7 +457,7 @@ def main():
 
     # Time out
     now = time.time()
-    if now - last_used > SLEEP_TIMEOUT_S and not is_sleeping and now > SLEEP_TIMEOUT_S:
+    if now - last_used > SLEEP_TIMEOUT_S and not stay_awake and not is_sleeping and now > SLEEP_TIMEOUT_S:
       go_to_sleep()
 
     if is_sleeping:
