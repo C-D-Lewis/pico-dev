@@ -1,6 +1,7 @@
 from machine import Pin, SPI, PWM
 import framebuf
 import time
+import util
 
 LCD_DC = 8
 LCD_CS = 9
@@ -14,9 +15,9 @@ TP_IRQ = 17
 
 class LCD_3inch5(framebuf.FrameBuffer):
   def __init__(self):
-    self.RED = 0x07E0
-    self.GREEN = 0x001F
-    self.BLUE = 0xF800
+    self.RED = util.rgb(255, 0, 0)
+    self.GREEN = util.rgb(0, 255, 0)
+    self.BLUE = util.rgb(0, 0, 255)
     self.WHITE = 0xFFFF
     self.BLACK = 0x0000
 

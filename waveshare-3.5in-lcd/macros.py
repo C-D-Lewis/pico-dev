@@ -1,7 +1,25 @@
 import time
 import os
 import lcd_lib
+import util
 
+WIDTH = 480
+HALF_HEIGHT = 160
+HEIGHT = 2* HALF_HEIGHT
+TOP_BAR_HEIGHT = 40
+TOP_H_HEIGHT = HALF_HEIGHT - TOP_BAR_HEIGHT
+BOTTOM_H_HEIGHT = HALF_HEIGHT
+
+COLOR_RED = util.rgb(255, 0, 0)
+COLOR_DARK_RED = util.rgb(178, 0, 0)
+
+#
+# This LCD module has drawing split into two halves, top and bottom.
+#
+# After a fill(), one of show_up() or show_down() will then show whatever was
+# painted onto that half.
+#
+# Touch coordinates are true, however.
 LCD = lcd_lib.LCD_3inch5()
 
 #
@@ -15,54 +33,64 @@ def init():
   LCD.show_down()
 
 #
+# Redraw everything on top
+#
+def draw_top():
+  LCD.fill(LCD.BLACK)
+
+  # Top bar
+  LCD.fill_rect(0, 0, WIDTH, TOP_BAR_HEIGHT, COLOR_RED)
+  LCD.text("Macro Pad", 20, 17, LCD.WHITE)
+
+  # Categories
+  LCD.fill_rect(0, TOP_BAR_HEIGHT, 100, HEIGHT, COLOR_DARK_RED)
+
+  LCD.show_up()
+
+#
+# Redraw everything on top
+#
+def draw_bottom():
+  LCD.fill(LCD.BLACK)
+
+  # Categories
+  LCD.fill_rect(0, 0, 100, HEIGHT, COLOR_DARK_RED)
+
+  LCD.show_down()
+
+#
+# Update elements based on a touch
+#
+def handle_touch(x, y):
+  # Was a category touched?
+  return
+
+#
 # The main function
 #
 def main():
-  # color BRG
-  LCD.fill(LCD.BLACK)
-  LCD.fill_rect(140, 5, 200, 30, LCD.RED)
-  LCD.text("Raspberry Pi Pico", 170, 17, LCD.WHITE)
-  LCD.show_up()
+  draw_top()
+  draw_bottom()
 
-  # Wait for touch
-  while True:
-    get = LCD.touch_get()
+  # while True:
+  #   time.sleep(0.1)
 
-    # Touch was detected
-    if get != None:
-      X_Point = int((get[1] - 430) * 480 / 3270)
-      if X_Point > 480:
-        X_Point = 480
-      elif X_Point < 0:
-        X_Point = 0
-      Y_Point = 320 - int((get[0] - 430) * 320 / 3270)
+  #   # Wait for touch
+  #   touch_pos = LCD.touch_get()
+  #   if touch_pos != None:
+  #     touch_x = min(int((touch_pos[1] - 430) * WIDTH / 3270), WIDTH)
+  #     touch_y = max((HEIGHT - int((touch_pos[0] - 430) * HEIGHT / 3270)), 0)
 
-      if Y_Point > 220:
-        LCD.fill(LCD.WHITE)
-        if X_Point < 120:
-          LCD.fill_rect(0, 60, 120, 100, LCD.RED)
-          LCD.text("Button0", 20, 110, LCD.WHITE)
-        elif X_Point < 240:
-          LCD.fill_rect(120, 60, 120, 100, LCD.RED)
-          LCD.text("Button1", 150, 110, LCD.WHITE)
-        elif X_Point < 360:
-          LCD.fill_rect(240, 60, 120, 100, LCD.RED)
-          LCD.text("Button2", 270, 110, LCD.WHITE)
-        else:
-          LCD.fill_rect(360, 60, 120, 100, LCD.RED)
-          LCD.text("Button3", 400, 110, LCD.WHITE)
-    # No touch state
-    else:
-      LCD.fill(LCD.WHITE)
-      LCD.text("Button0", 20, 110, LCD.BLACK)
-      LCD.text("Button1", 150, 110, LCD.BLACK)
-      LCD.text("Button2", 270, 110, LCD.BLACK)
-      LCD.text("Button3", 400, 110, LCD.BLACK)
-    
-    # Draw both halves
-    time.sleep(0.1)
-    LCD.show_down()
-    
+  #     if (touch_y > HALF_HEIGHT):
+  #       touch_y = touch_y - HALF_HEIGHT
+  #     handle_touch(touch_x, touch_y)
+
+  #     # Redraw everything
+  #     draw_top()
+  #     LCD.show_up()
+  #     draw_bottom()
+  #     LCD.show_down()
+
 if __name__ == "__main__":
   init()
   main()
