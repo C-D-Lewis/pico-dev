@@ -1,4 +1,4 @@
-# pico-keypad-dev
+# keypad-base
 
 Scripts for the Raspberry Pi Pico and Pimoroni RGB Keypad Base accessory.
 
