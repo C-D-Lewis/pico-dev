@@ -1,3 +1,12 @@
+import gc
+print('main.py')
+print(gc.mem_free())
+
+def log():
+    f = open('data.txt', 'w')
+    f.write('got here!')
+    f.close()
+
 import time
 import os
 import lcd_lib
@@ -9,6 +18,9 @@ HEIGHT = 2* HALF_HEIGHT
 TOP_BAR_HEIGHT = 40
 TOP_H_HEIGHT = HALF_HEIGHT - TOP_BAR_HEIGHT
 BOTTOM_H_HEIGHT = HALF_HEIGHT
+
+CATEGORY_WIDTH = 100
+CATEGORY_HEIGHT = round(TOP_H_HEIGHT / 3)
 
 COLOR_RED = util.rgb(255, 0, 0)
 COLOR_DARK_RED = util.rgb(178, 0, 0)
@@ -27,10 +39,11 @@ LCD = lcd_lib.LCD_3inch5()
 #
 def init():
   LCD.bl_ctrl(50)
-  LCD.fill(LCD.BLACK)
+  LCD.fill(LCD.RED)
   LCD.show_up()
   LCD.fill(LCD.BLACK)
   LCD.show_down()
+  log()
 
 #
 # Redraw everything on top
@@ -43,7 +56,10 @@ def draw_top():
   LCD.text("Macro Pad", 20, 17, LCD.WHITE)
 
   # Categories
-  LCD.fill_rect(0, TOP_BAR_HEIGHT, 100, HEIGHT, COLOR_DARK_RED)
+  # BG
+  LCD.fill_rect(0, TOP_BAR_HEIGHT, CATEGORY_WIDTH, HEIGHT, COLOR_DARK_RED)
+  # Lines
+  LCD.fill_rect(0, TOP_BAR_HEIGHT + CATEGORY_HEIGHT, CATEGORY_WIDTH, 2, LCD.BLACK)
 
   LCD.show_up()
 
@@ -90,7 +106,7 @@ def main():
   #     LCD.show_up()
   #     draw_bottom()
   #     LCD.show_down()
-
 if __name__ == "__main__":
   init()
   main()
+

@@ -19,5 +19,5 @@ To avoid clicking lots of GUI options, it is possible to copy files directly.
 Then copy files:
 
 ```
-fs cp .\main.py :.
+mpremote fs cp .\main.py :.
 ```
