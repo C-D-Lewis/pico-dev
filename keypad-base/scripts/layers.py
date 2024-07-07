@@ -23,12 +23,29 @@ MENU_WIDTH = 100
 MENU_ITEM_HEIGHT = round(TOP_H_HEIGHT / 3)
 MENU_TEXT_OFFSET = 17
 
+# Area IDs
+MENU_ITEM_MEDIA = 0
+MENU_ITEM_APPS = 1
+MENU_ITEM_WINDOWS = 2
+MENU_ITEM_WEB = 3
+MENU_ITEM_OTHER = 4
+
 # Touchable areas - [x, y, w, h]
-TAP_AREAS = [
-  # Media
+MENU_AREAS = [
   {
     'area': [0, TOP_BAR_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
-    'handler': lambda: on_area_tapped(0),
+  },
+  {
+    'area': [0, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+  },
+  {
+    'area': [0, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+  },
+  {
+    'area': [0, TOP_BAR_HEIGHT + 3 * MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+  },
+  {
+    'area': [0, TOP_BAR_HEIGHT + 4 * MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
   },
 ]
 
@@ -37,7 +54,7 @@ COLOR_RED = util.rgb(255, 0, 0)
 COLOR_DARK_RED = util.rgb(178, 0, 0)
 
 # Other
-TAP_TIMEOUT_S = 10
+TAP_TIMEOUT_S = 60
 
 #
 # This LCD module has drawing split into two halves, top and bottom.
@@ -51,12 +68,13 @@ LCD = lcd_lib.LCD_3inch5()
 # State
 is_awake = True
 last_tap_time = time.time()
+selected_menu_index = 0
 
 #
 # Initialise the display
 #
 def init():
-  LCD.bl_ctrl(50)
+  LCD.bl_ctrl(100)
   LCD.fill(LCD.RED)
   LCD.show_up()
   LCD.fill(LCD.BLACK)
@@ -72,6 +90,7 @@ def draw_top():
   # Top bar
   LCD.fill_rect(0, 0, WIDTH, TOP_BAR_HEIGHT, COLOR_RED)
   LCD.text("PICO MACRO PAD", 15, MENU_TEXT_OFFSET, LCD.WHITE)
+  LCD.fill_rect(0, TOP_BAR_HEIGHT - 2, WIDTH, 2, LCD.BLACK)
   # Date and time
   now = time.localtime()
   date_str = "{}/{}/{}".format(now[1], now[2], now[0])
@@ -81,6 +100,9 @@ def draw_top():
 
   # Categories
   LCD.fill_rect(0, TOP_BAR_HEIGHT, MENU_WIDTH, HEIGHT, COLOR_DARK_RED)
+  # Selection
+  if selected_menu_index < 3:
+    LCD.fill_rect(*MENU_AREAS[selected_menu_index]['area'], COLOR_RED)
   # Lines
   LCD.fill_rect(0, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
   LCD.fill_rect(0, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
@@ -99,6 +121,9 @@ def draw_bottom():
 
   # Categories
   LCD.fill_rect(0, 0, 100, HEIGHT, COLOR_DARK_RED)
+  # Selection
+  if selected_menu_index >= 3:
+    LCD.fill_rect(*MENU_AREAS[selected_menu_index]['area'], COLOR_RED)
   # Lines
   LCD.fill_rect(0, 0, MENU_WIDTH, 2, LCD.BLACK)
   LCD.fill_rect(0, MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
@@ -119,22 +144,22 @@ def draw_blank():
   LCD.show_down()
 
 #
+# When a menu area is tapped
+#
+def on_menu_tapped(index):
+  global selected_menu_index
+
+  selected_menu_index = index
+
+#
 # Update elements based on a touch
 #
 def handle_touch(x, y):
-  # Menu?
-  for index, item in enumerate(TAP_AREAS):
+  # Menu tapped?
+  for index, item in enumerate(MENU_AREAS):
     if util.intersects(x, y, item['area']):
       print("tap {}".format(index))
-      item['handler']()
-
-  return
-
-#
-# When an area is tapped, do something specific
-#
-def on_area_tapped(index):
-  print(index)
+      on_menu_tapped(index)
 
 #
 # The main function
@@ -152,14 +177,15 @@ def main():
     # Wait for touch
     touch_pos = LCD.touch_get()
     if touch_pos != None:
+      last_tap_time = time.time()
+      is_awake = True
+      LCD.bl_ctrl(100)
       touch_x = min(int((touch_pos[1] - 430) * WIDTH / 3270), WIDTH)
       touch_y = max((HEIGHT - int((touch_pos[0] - 430) * HEIGHT / 3270)), 0)
 
-      if (touch_y > HALF_HEIGHT):
-        touch_y = touch_y - HALF_HEIGHT
+#       if (touch_y > HALF_HEIGHT):
+#         touch_y = touch_y - HALF_HEIGHT
       handle_touch(touch_x, touch_y)
-      last_tap_time = time.time()
-      is_awake = True
 
       # Redraw everything
       draw_top()
@@ -170,10 +196,14 @@ def main():
     # Sleep?
     if (time.time() - last_tap_time > TAP_TIMEOUT_S) and is_awake:
       is_awake = False
+      LCD.bl_ctrl(0)
       draw_blank()
-      continue
 
 if __name__ == "__main__":
   init()
   main()
+
+
+
+
 
