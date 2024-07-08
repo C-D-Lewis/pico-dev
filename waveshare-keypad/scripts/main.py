@@ -2,11 +2,6 @@ import gc
 print('main.py')
 print(gc.mem_free())
 
-def log():
-    f = open('data.txt', 'w')
-    f.write('got here!')
-    f.close()
-
 import time
 import os
 import lcd_lib
@@ -23,11 +18,40 @@ MENU_WIDTH = 100
 MENU_ITEM_HEIGHT = round(TOP_H_HEIGHT / 3)
 MENU_TEXT_OFFSET = 17
 
+# Area IDs
+MENU_ITEM_MEDIA = 0
+MENU_ITEM_APPS = 1
+MENU_ITEM_WINDOWS = 2
+MENU_ITEM_WEB = 3
+MENU_ITEM_OTHER = 4
+
 # Touchable areas - [x, y, w, h]
-TAP_AREAS = [
-  # Menu
-  # Media
-  [0, TOP_BAR_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT]
+MENU_AREAS = [
+  {
+    'tap': [0, TOP_BAR_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+    'draw': [0, TOP_BAR_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+    'section': 'top',
+  },
+  {
+    'tap': [0, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+    'draw': [0, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+    'section': 'top',
+  },
+  {
+    'tap': [0, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+    'draw': [0, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+    'section': 'top',
+  },
+  {
+    'tap': [0, TOP_BAR_HEIGHT + 3 * MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+    'draw': [0, 0, MENU_WIDTH, MENU_ITEM_HEIGHT],
+    'section': 'bottom',
+  },
+  {
+    'tap': [0, TOP_BAR_HEIGHT + 4 * MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+    'draw': [0, MENU_ITEM_HEIGHT, MENU_WIDTH, MENU_ITEM_HEIGHT],
+    'section': 'bottom',
+  },
 ]
 
 # Colors
@@ -35,7 +59,7 @@ COLOR_RED = util.rgb(255, 0, 0)
 COLOR_DARK_RED = util.rgb(178, 0, 0)
 
 # Other
-TAP_TIMEOUT_S = 10
+TAP_TIMEOUT_S = 60
 
 #
 # This LCD module has drawing split into two halves, top and bottom.
@@ -49,17 +73,18 @@ LCD = lcd_lib.LCD_3inch5()
 # State
 is_awake = True
 last_tap_time = time.time()
+selected_menu_index = 0
+is_connected = False
 
 #
 # Initialise the display
 #
 def init():
-  LCD.bl_ctrl(50)
+  LCD.bl_ctrl(100)
   LCD.fill(LCD.RED)
   LCD.show_up()
   LCD.fill(LCD.BLACK)
   LCD.show_down()
-  log()
 
 #
 # Redraw everything on top
@@ -69,23 +94,35 @@ def draw_top():
 
   # Top bar
   LCD.fill_rect(0, 0, WIDTH, TOP_BAR_HEIGHT, COLOR_RED)
-  LCD.text("PICO MACRO PAD", 15, MENU_TEXT_OFFSET, LCD.WHITE)
+  LCD.text('========== PICO MACRO PAD ========', 25, MENU_TEXT_OFFSET, LCD.WHITE)
+  LCD.fill_rect(0, TOP_BAR_HEIGHT - 2, WIDTH, 2, LCD.BLACK)
+  
   # Date and time
   now = time.localtime()
-  date_str = "{}/{}/{}".format(now[1], now[2], now[0])
-  time_str = "{}:{} --".format(util.pad(now[3]), util.pad(now[4]))
-  LCD.text(date_str, WIDTH - 75, MENU_TEXT_OFFSET, LCD.WHITE)
-  LCD.text(time_str, WIDTH - 146, MENU_TEXT_OFFSET, LCD.WHITE)
+  date_str = '{}/{}/{} =='.format(now[1], now[2], now[0])
+  time_str = '{}:{} =='.format(util.pad(now[3]), util.pad(now[4]))
+  LCD.text(date_str, WIDTH - 100, MENU_TEXT_OFFSET, LCD.WHITE)
+  LCD.text(time_str, WIDTH - 171, MENU_TEXT_OFFSET, LCD.WHITE)
 
-  # Categories
+  # Wifi connected?
+  LCD.text('~' if is_connected else '', 10, MENU_TEXT_OFFSET + 2, LCD.WHITE)
+
+  # Menu categories
   LCD.fill_rect(0, TOP_BAR_HEIGHT, MENU_WIDTH, HEIGHT, COLOR_DARK_RED)
-  # Lines
+  
+  # Menu selection
+  selected_menu_item = MENU_AREAS[selected_menu_index]
+  if selected_menu_item['section'] == 'top':
+    LCD.fill_rect(*selected_menu_item['draw'], COLOR_RED)
+  
+  # Menu lines
   LCD.fill_rect(0, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
   LCD.fill_rect(0, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
-  # Labels
-  LCD.text("Media", 10, TOP_BAR_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
-  LCD.text("Apps", 10, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
-  LCD.text("Windows", 10, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
+  
+  # Menu labels
+  LCD.text('Media', 10, TOP_BAR_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
+  LCD.text('Apps', 10, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
+  LCD.text('Windows', 10, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
 
   LCD.show_up()
 
@@ -97,13 +134,20 @@ def draw_bottom():
 
   # Categories
   LCD.fill_rect(0, 0, 100, HEIGHT, COLOR_DARK_RED)
-  # Lines
+
+  # Menu selection
+  selected_menu_item = MENU_AREAS[selected_menu_index]
+  if selected_menu_item['section'] == 'bottom':
+    LCD.fill_rect(*selected_menu_item['draw'], COLOR_RED)
+  
+  # Menu lines
   LCD.fill_rect(0, 0, MENU_WIDTH, 2, LCD.BLACK)
   LCD.fill_rect(0, MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
   LCD.fill_rect(0, 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
-  # Labels
-  LCD.text("Web", 10, 17, LCD.WHITE)
-  LCD.text("Other", 10, MENU_ITEM_HEIGHT + 17, LCD.WHITE)
+  
+  # Menu labels
+  LCD.text('Web', 10, 17, LCD.WHITE)
+  LCD.text('Other', 10, MENU_ITEM_HEIGHT + 17, LCD.WHITE)
 
   LCD.show_down()
 
@@ -117,15 +161,24 @@ def draw_blank():
   LCD.show_down()
 
 #
+# Redraw everything
+#
+def redraw_all():
+  draw_top()
+  LCD.show_up()
+  draw_bottom()
+  LCD.show_down()
+
+#
 # Update elements based on a touch
 #
 def handle_touch(x, y):
-  # Menu?
-  for index, area in enumerate(TAP_AREAS):
-    if util.intersects(x, y, area):
-      print("tap {}".format(index))
+  global selected_menu_index
 
-  return
+  # Menu tapped?
+  for index, item in enumerate(MENU_AREAS):
+    if util.intersects(x, y, item['tap']):
+      selected_menu_index = index
 
 #
 # The main function
@@ -143,27 +196,23 @@ def main():
     # Wait for touch
     touch_pos = LCD.touch_get()
     if touch_pos != None:
-      touch_x = min(int((touch_pos[1] - 430) * WIDTH / 3270), WIDTH)
-      touch_y = max((HEIGHT - int((touch_pos[0] - 430) * HEIGHT / 3270)), 0)
-
-      if (touch_y > HALF_HEIGHT):
-        touch_y = touch_y - HALF_HEIGHT
-      handle_touch(touch_x, touch_y)
       last_tap_time = time.time()
       is_awake = True
+      LCD.bl_ctrl(100)
 
-      # Redraw everything
-      draw_top()
-      LCD.show_up()
-      draw_bottom()
-      LCD.show_down()
+      touch_x = min(int((touch_pos[1] - 430) * WIDTH / 3270), WIDTH)
+      touch_y = max((HEIGHT - int((touch_pos[0] - 430) * HEIGHT / 3270)), 0)
+      handle_touch(touch_x, touch_y)
+
+      redraw_all()
 
     # Sleep?
     if (time.time() - last_tap_time > TAP_TIMEOUT_S) and is_awake:
       is_awake = False
+      LCD.bl_ctrl(0)
       draw_blank()
-      continue
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   init()
   main()
+
