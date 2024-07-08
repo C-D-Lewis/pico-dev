@@ -1,11 +1,13 @@
 import gc
-print('main.py')
 print(gc.mem_free())
 
 import time
 import os
 import lcd_lib
 import util
+import network
+import socket
+import machine
 
 # Geometry
 WIDTH = 480
@@ -75,11 +77,48 @@ is_awake = True
 last_tap_time = time.time()
 selected_menu_index = 0
 is_connected = False
+config = {}
+
+#
+# Load config
+#
+def load_config():
+  global config
+
+  f = open('config.ini', 'r')
+  content = f.read()
+  lines = content.replace('\r', '').split("\n")
+  for l in lines:
+    l = l.strip()
+  ssid = lines[0].split('=')[1]
+  password = lines[1].split('=')[1]
+
+  config = {
+    'ssid': ssid,
+    'password': password
+  }
+  print(config)
+
+#
+# Connect to Wifi
+#
+def connect():
+  global is_connected
+  
+  wlan = network.WLAN(network.STA_IF)
+  wlan.active(True)
+  wlan.connect(config['ssid'], config['password'])
+  while wlan.isconnected() == False:
+    print('Waiting for connection...')
+    time.sleep(1)
+  print(wlan.ifconfig())
+  is_connected = True
+  redraw_all()
 
 #
 # Initialise the display
 #
-def init():
+def init_display():
   LCD.bl_ctrl(100)
   LCD.fill(LCD.RED)
   LCD.show_up()
@@ -105,7 +144,7 @@ def draw_top():
   LCD.text(time_str, WIDTH - 171, MENU_TEXT_OFFSET, LCD.WHITE)
 
   # Wifi connected?
-  LCD.text('~' if is_connected else '', 10, MENU_TEXT_OFFSET + 2, LCD.WHITE)
+  LCD.text('~' if is_connected else ' ', 10, MENU_TEXT_OFFSET + 2, LCD.WHITE)
 
   # Menu categories
   LCD.fill_rect(0, TOP_BAR_HEIGHT, MENU_WIDTH, HEIGHT, COLOR_DARK_RED)
@@ -183,7 +222,7 @@ def handle_touch(x, y):
 #
 # The main function
 #
-def main():
+def loop():
   global last_tap_time
   global is_awake
 
@@ -213,6 +252,9 @@ def main():
       draw_blank()
 
 if __name__ == '__main__':
-  init()
-  main()
+  load_config()
+  init_display()
+  redraw_all()
+  connect()
+  loop()
 
