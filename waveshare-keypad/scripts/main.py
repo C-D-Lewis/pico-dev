@@ -106,7 +106,7 @@ def load_config():
 #
 def connect():
   global wlan
-  
+
   wlan = network.WLAN(network.STA_IF)
   wlan.active(True)
   wlan.connect(config['ssid'], config['password'])
@@ -132,7 +132,7 @@ def draw_top():
   LCD.fill_rect(0, 0, WIDTH, TOP_BAR_HEIGHT, COLOR_RED)
   LCD.text('========== PICO MACRO PAD ========', 25, MENU_TEXT_OFFSET, LCD.WHITE)
   LCD.fill_rect(0, TOP_BAR_HEIGHT - 2, WIDTH, 2, LCD.BLACK)
-  
+
   # Date and time
   now = time.localtime()
   date_str = '{}/{}/{} =='.format(now[1], now[2], now[0])
@@ -145,16 +145,16 @@ def draw_top():
 
   # Menu categories
   LCD.fill_rect(0, TOP_BAR_HEIGHT, MENU_WIDTH, HEIGHT, COLOR_DARK_RED)
-  
+
   # Menu selection
   selected_menu_item = MENU_AREAS[selected_menu_index]
   if selected_menu_item['section'] == 'top':
     LCD.fill_rect(*selected_menu_item['draw'], COLOR_RED)
-  
+
   # Menu lines
   LCD.fill_rect(0, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
   LCD.fill_rect(0, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
-  
+
   # Menu labels
   LCD.text('Media', 10, TOP_BAR_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
   LCD.text('Apps', 10, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
@@ -175,12 +175,12 @@ def draw_bottom():
   selected_menu_item = MENU_AREAS[selected_menu_index]
   if selected_menu_item['section'] == 'bottom':
     LCD.fill_rect(*selected_menu_item['draw'], COLOR_RED)
-  
+
   # Menu lines
   LCD.fill_rect(0, 0, MENU_WIDTH, 2, LCD.BLACK)
   LCD.fill_rect(0, MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
   LCD.fill_rect(0, 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
-  
+
   # Menu labels
   LCD.text('Web', 10, 17, LCD.WHITE)
   LCD.text('Other', 10, MENU_ITEM_HEIGHT + 17, LCD.WHITE)
@@ -270,4 +270,5 @@ if __name__ == '__main__':
   redraw_all()
   connect()
   loop()
+
 

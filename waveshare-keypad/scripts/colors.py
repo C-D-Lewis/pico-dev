@@ -45,7 +45,7 @@ def draw_top():
   b = 0
   x = 0
   y = 0
-  
+
   # Red
   while r < 255:
     LCD.fill_rect(x, y, SWATCH_SIZE, SWATCH_SIZE, util.rgb(r, g, b))
@@ -60,7 +60,7 @@ def draw_top():
     LCD.fill_rect(x, y, SWATCH_SIZE, SWATCH_SIZE, util.rgb(r, g, b))
     g += X_COLOR_INCREMENT
     x += SWATCH_SIZE
-    
+
   # Blue
   x = 0
   y += SWATCH_SIZE
@@ -68,6 +68,15 @@ def draw_top():
   while b < 255:
     LCD.fill_rect(x, y, SWATCH_SIZE, SWATCH_SIZE, util.rgb(r, g, b))
     b += X_COLOR_INCREMENT
+    x += SWATCH_SIZE
+
+  # GRey
+  x = 0
+  y += 2 * SWATCH_SIZE
+  v = 0
+  while v < 255:
+    LCD.fill_rect(x, y, SWATCH_SIZE, SWATCH_SIZE, util.rgb(v, v, v))
+    v += X_COLOR_INCREMENT
     x += SWATCH_SIZE
 
   LCD.show_up()
@@ -83,11 +92,13 @@ def draw_bottom():
   b = 0
 
   # Traverse the space
+  import random
   for y in range(0, ROWS):
     r = 0
     g += Y_COLOR_INCREMENT
 
     for x in range(0, COLUMNS):
+      b = random.randint(0, 255)
       LCD.fill_rect(x * SWATCH_SIZE, y * SWATCH_SIZE, SWATCH_SIZE, SWATCH_SIZE, util.rgb(r, g, b))
       r += X_COLOR_INCREMENT
 
@@ -112,5 +123,6 @@ def main():
 if __name__ == '__main__':
   init_display()
   main()
+
 
 

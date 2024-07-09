@@ -13,10 +13,10 @@ def rgb888_to_rgb565(red, green, blue):
   r = round((red / 255) * 31)
   g = round((green / 255) * 63)
   b = round((blue / 255) * 31)
-  
+
   r = r << 11
   g = g << 5
-  
+
   return swap16(r | g | b)
 
 #
