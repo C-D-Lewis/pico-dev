@@ -1,16 +1,29 @@
-# TODO Get these params straight...
-def brg_to_rgb565(blue, red, green):
-  # Convert each color component to a 5-bit value (lower bits discarded)
-  r = (red & 0xF8) << 8
-  g = (green & 0xFC) << 3
-  b = blue >> 3
+#
+# Byte swap endianness for this display
+#
+def swap16(x):
+  return (((x << 8) & 0xFF00) |
+          ((x >> 8) & 0x00FF))
 
-  # Combine the components into a single 16-bit RGB565 value
-  return r | g | b
+#
+# Convert RGB888 (255) to RGB565 (31)
+# Adapted from https://rgbcolorpicker.com/565
+#
+def rgb888_to_rgb565(red, green, blue):
+  r = round((red / 255) * 31)
+  g = round((green / 255) * 63)
+  b = round((blue / 255) * 31)
+  
+  r = r << 11
+  g = g << 5
+  
+  return swap16(r | g | b)
 
-# TODO Get these params straight...
-def rgb(red, green, blue):
-  return brg_to_rgb565(green, blue, red)
+#
+# Helper for creating colors
+#
+def rgb(r, g, b):
+  return rgb888_to_rgb565(r, g, b)
 
 #
 # Is point inside a rect

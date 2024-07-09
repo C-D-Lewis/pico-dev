@@ -62,8 +62,8 @@ COLOR_DARK_RED = util.rgb(178, 0, 0)
 
 # Other
 TAP_TIMEOUT_S = 60
+INFREQUENT_INTERVAL_S = 10
 
-#
 # This LCD module has drawing split into two halves, top and bottom.
 #
 # After a fill(), one of show_up() or show_down() will then show whatever was
@@ -73,8 +73,10 @@ TAP_TIMEOUT_S = 60
 LCD = lcd_lib.LCD_3inch5()
 
 # State
+wlan = None
 is_awake = True
 last_tap_time = time.time()
+last_infrequent_time = time.time()
 selected_menu_index = 0
 is_connected = False
 config = {}
@@ -103,24 +105,19 @@ def load_config():
 # Connect to Wifi
 #
 def connect():
-  global is_connected
+  global wlan
   
   wlan = network.WLAN(network.STA_IF)
   wlan.active(True)
   wlan.connect(config['ssid'], config['password'])
-  while wlan.isconnected() == False:
-    print('Waiting for connection...')
-    time.sleep(1)
   print(wlan.ifconfig())
-  is_connected = True
-  redraw_all()
 
 #
 # Initialise the display
 #
 def init_display():
   LCD.bl_ctrl(100)
-  LCD.fill(LCD.RED)
+  LCD.fill(LCD.BLACK)
   LCD.show_up()
   LCD.fill(LCD.BLACK)
   LCD.show_down()
@@ -220,17 +217,33 @@ def handle_touch(x, y):
       selected_menu_index = index
 
 #
+# Do something less frequently than 10Hz
+#
+def on_infrequent_update():
+  global is_connected
+
+  if wlan:
+    is_connected = wlan.isconnected()
+    redraw_all()
+
+#
 # The main function
 #
 def loop():
   global last_tap_time
   global is_awake
+  global last_infrequent_time
 
   draw_top()
   draw_bottom()
 
   while True:
     time.sleep(0.1)
+
+    now = time.time()
+    if now - last_infrequent_time > INFREQUENT_INTERVAL_S:
+      last_infrequent_time = now
+      on_infrequent_update()
 
     # Wait for touch
     touch_pos = LCD.touch_get()
