@@ -8,17 +8,20 @@ import util
 import network
 import socket
 import machine
+import math
 
 # Geometry
 WIDTH = 480
 HALF_HEIGHT = 160
 HEIGHT = 2* HALF_HEIGHT
 TOP_BAR_HEIGHT = 40
-TOP_H_HEIGHT = HALF_HEIGHT - TOP_BAR_HEIGHT
+TOP_HALF_HEIGHT = HALF_HEIGHT - TOP_BAR_HEIGHT
 BOTTOM_H_HEIGHT = HALF_HEIGHT
 MENU_WIDTH = 100
-MENU_ITEM_HEIGHT = round(TOP_H_HEIGHT / 3)
+MENU_ITEM_HEIGHT = round(TOP_HALF_HEIGHT / 3)
 MENU_TEXT_OFFSET = 17
+BUTTON_WIDTH = 80
+BUTTON_HEIGHT = 50
 
 # Area IDs
 MENU_ITEM_MEDIA = 0
@@ -110,7 +113,6 @@ def connect():
   wlan = network.WLAN(network.STA_IF)
   wlan.active(True)
   wlan.connect(config['ssid'], config['password'])
-  print(wlan.ifconfig())
 
 #
 # Initialise the display
@@ -121,6 +123,22 @@ def init_display():
   LCD.show_up()
   LCD.fill(LCD.BLACK)
   LCD.show_down()
+
+#
+# Draw grid for buttons
+#
+def draw_button_grid(y_start):
+  line_w = 2
+  num_rows = 2
+  num_cols = 4
+  x_interval = round((WIDTH - MENU_WIDTH) / num_cols)
+  y_interval = round(TOP_HALF_HEIGHT / num_rows)
+  
+  for col in range(0, num_cols):
+    x = col * x_interval
+    y = y_start + y_interval
+    LCD.fill_rect(x, y, 2, TOP_HALF_HEIGHT, LCD.WHITE)
+
 
 #
 # Redraw everything on top
@@ -143,7 +161,6 @@ def draw_top():
   # Wifi connected?
   LCD.text('~' if is_connected else ' ', 10, MENU_TEXT_OFFSET + 2, LCD.WHITE)
 
-  # Menu categories
   LCD.fill_rect(0, TOP_BAR_HEIGHT, MENU_WIDTH, HEIGHT, COLOR_DARK_RED)
 
   # Menu selection
@@ -151,14 +168,15 @@ def draw_top():
   if selected_menu_item['section'] == 'top':
     LCD.fill_rect(*selected_menu_item['draw'], COLOR_RED)
 
-  # Menu lines
-  LCD.fill_rect(0, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
-  LCD.fill_rect(0, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
-
-  # Menu labels
+  # Menu items
   LCD.text('Media', 10, TOP_BAR_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
+  LCD.fill_rect(0, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
   LCD.text('Apps', 10, TOP_BAR_HEIGHT + MENU_ITEM_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
+  LCD.fill_rect(0, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
   LCD.text('Windows', 10, TOP_BAR_HEIGHT + 2 * MENU_ITEM_HEIGHT + MENU_TEXT_OFFSET, LCD.WHITE)
+
+  # Grid of buttons
+  draw_button_grid(TOP_BAR_HEIGHT)
 
   LCD.show_up()
 
@@ -168,7 +186,6 @@ def draw_top():
 def draw_bottom():
   LCD.fill(LCD.BLACK)
 
-  # Categories
   LCD.fill_rect(0, 0, 100, HEIGHT, COLOR_DARK_RED)
 
   # Menu selection
@@ -176,14 +193,15 @@ def draw_bottom():
   if selected_menu_item['section'] == 'bottom':
     LCD.fill_rect(*selected_menu_item['draw'], COLOR_RED)
 
-  # Menu lines
+  # Menu items
   LCD.fill_rect(0, 0, MENU_WIDTH, 2, LCD.BLACK)
+  LCD.text('Web', 10, 17, LCD.WHITE)
   LCD.fill_rect(0, MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
+  LCD.text('Other', 10, MENU_ITEM_HEIGHT + 17, LCD.WHITE)
   LCD.fill_rect(0, 2 * MENU_ITEM_HEIGHT, MENU_WIDTH, 2, LCD.BLACK)
 
-  # Menu labels
-  LCD.text('Web', 10, 17, LCD.WHITE)
-  LCD.text('Other', 10, MENU_ITEM_HEIGHT + 17, LCD.WHITE)
+  # Grid of buttons
+  draw_button_grid(0)
 
   LCD.show_down()
 
