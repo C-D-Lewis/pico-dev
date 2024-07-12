@@ -133,12 +133,18 @@ def draw_button_grid(y_start):
   num_cols = 4
   x_interval = round((WIDTH - MENU_WIDTH) / num_cols)
   y_interval = round(TOP_HALF_HEIGHT / num_rows)
-  
-  for col in range(0, num_cols):
-    x = col * x_interval
-    y = y_start + y_interval
+
+  # Vertical lines
+  for col in range(1, num_cols):
+    x = MENU_WIDTH + (col * x_interval)
+    y = y_start
     LCD.fill_rect(x, y, 2, TOP_HALF_HEIGHT, LCD.WHITE)
 
+  # Horizontal lines
+  r_start = 1 if y_start == TOP_BAR_HEIGHT else 0
+  for row in range(r_start, num_rows):
+    y = y_start + (row * y_interval)
+    LCD.fill_rect(MENU_WIDTH, y, WIDTH - MENU_WIDTH, 2, LCD.WHITE)
 
 #
 # Redraw everything on top
@@ -288,5 +294,3 @@ if __name__ == '__main__':
   redraw_all()
   connect()
   loop()
-
-
