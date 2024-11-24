@@ -29,12 +29,16 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
 | 14 | Sleep | Dark blue |
 | 15 | Ctrl+Shift+Esc | Purple |
 
-## `layers.py` - Multi-layer functions.
+## `macros.py` - Multi-layer functions.
+
+> If `settings.toml` has `WIFI_SSID` and `WIFI_PASSWORD`, NTP is used to show
+> a clock when asleep.
 
 * Layer 1 - media controls
   * Prev/play/next
   * Vol down/mute/Vol up
-  * Ctrl+M
+  * Ctrl+M (Discord mute)
+  * Roll a D6
 * Layer 2 - Launch apps by Start menu search
   * Spotify/Steam/Discord
 * Layer 3 - Windows/System and power options
@@ -44,7 +48,7 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
   * Toggle 'stay awake'
   * Sleep keypad
 
-## `widi_test.py` - Test Pico W WiFi connection
+## `wifi_test.py` - Test Pico W WiFi connection
 
 Requires `settings.toml` with `WIFI_SSID` and `WIFI_PASSWORD`
 

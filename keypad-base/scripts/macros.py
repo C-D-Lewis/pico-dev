@@ -340,6 +340,11 @@ def get_minute_seconds_digit(minutes):
 # Show clock animation
 #
 def show_clock():
+  if not wifi_enabled():
+    # Key to wake
+    keys[0].set_led(*COLOR_SLEEPING)
+    return
+
   global last_second_index
 
   # (year, month, mday, hour, minute, second, ...)
@@ -372,9 +377,21 @@ def show_clock():
     keys[seconds_index].set_led(*darker(COLOR_YELLOW))
 
 #
-# Connect to WiFi
+# Use WiFi features only if credentials are present
+#
+def wifi_enabled():
+  return os.getenv('WIFI_SSID') is not None and os.getenv('WIFI_PASSWORD') is not None
+
+#
+# Connect to WiFi, if enabled
 #
 def connect_wifi():
+  if not wifi_enabled():
+    keys[0].set_led(*COLOR_RED)
+    time.sleep(0.3)
+    keys[0].set_led(*COLOR_OFF)
+    return
+
   global pool
   global session
 
@@ -386,9 +403,15 @@ def connect_wifi():
   keys[0].set_led(*COLOR_GREEN)
 
 #
-# Update time from NTP
+# Update time from NTP, if WiFi enabled
 #
 def update_time():
+  if not wifi_enabled():
+    keys[4].set_led(*COLOR_RED)
+    time.sleep(0.3)
+    keys[4].set_led(*COLOR_OFF)
+    return
+
   keys[4].set_led(*COLOR_YELLOW)
   time.sleep(0.2)
   ntp = adafruit_ntp.NTP(pool, tz_offset=0)

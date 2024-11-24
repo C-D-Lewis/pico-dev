@@ -7,4 +7,3 @@ Projects developed for Raspberry Pi pico.
 * `keypad-base` - Macro pad for Pico Keypad Base.
 * `waveshare-3.5in-lcd` - Macro pad for Waveshare 3.5 inch touch display for Pico.
 * `pico-pipes` - Pico powered stepper motor organ and MIDI conversion scripts.
-
