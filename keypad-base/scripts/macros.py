@@ -387,7 +387,7 @@ def wifi_enabled():
 #
 def connect_wifi():
   if not wifi_enabled():
-    keys[0].set_led(*COLOR_RED)
+    keys[0].set_led(*COLOR_YELLOW)
     time.sleep(0.3)
     keys[0].set_led(*COLOR_OFF)
     return
@@ -407,7 +407,7 @@ def connect_wifi():
 #
 def update_time():
   if not wifi_enabled():
-    keys[4].set_led(*COLOR_RED)
+    keys[4].set_led(*COLOR_YELLOW)
     time.sleep(0.3)
     keys[4].set_led(*COLOR_OFF)
     return
