@@ -83,10 +83,6 @@ KEY_MAP = {
     13: {
       'combo': (Keycode.CONTROL, Keycode.M),
       'color': COLOR_RED
-    },
-    15: {
-      'custom': lambda: roll_d6(),
-      'color': COLOR_WHITE
     }
   },
   # Applications
@@ -102,9 +98,13 @@ KEY_MAP = {
     3: {
       'custom': lambda: run_program('discord'),
       'color': (0, 32, 64)
+    },
+    5: {
+      'custom': lambda: run_program('firefox'),
+      'color': (25, 0, 0)
     }
   },
-  # System
+  # Windows
   2: {
     1: {
       'combo': (Keycode.CONTROL, Keycode.SHIFT, Keycode.ESCAPE),
@@ -130,8 +130,12 @@ KEY_MAP = {
       'custom': lambda: go_to_sleep()
     }
   },
-  # Utility (web? numpad?)
+  # Other (meta, web? numpad?)
   3: {
+    1: {
+      'custom': lambda: roll_d6(),
+      'color': COLOR_WHITE
+    },
     14: {
       'custom': lambda: toggle_stay_awake(),
       'color': (16, 16, 16)
@@ -234,6 +238,8 @@ def toggle_stay_awake():
   # Reset to layer 0 (long lived media controls)
   if stay_awake:
     set_layer(0)
+  else:
+    go_to_sleep()
 
 #
 # Flash a key to confirm an action.
@@ -337,9 +343,9 @@ def get_minute_seconds_digit(minutes):
   return DIGIT_LED_SEQ[index]
 
 #
-# Show clock animation
+# Show clock animation if WiFI, else just the wake button
 #
-def show_clock():
+def show_sleep():
   if not wifi_enabled():
     # Key to wake
     keys[0].set_led(*COLOR_SLEEPING)
@@ -468,8 +474,11 @@ for key in keys:
 # The main function
 #
 def main():
+  global last_used
+
   boot_sequence()
   time.sleep(0.5)
+  last_used = time.time()
 
   # Default layer
   set_layer(0)
@@ -484,6 +493,7 @@ def main():
       go_to_sleep()
 
     if is_sleeping:
-      show_clock()
+      show_sleep()
 
 main()
+
