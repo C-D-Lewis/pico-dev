@@ -18,42 +18,37 @@ import usb_hid
 import wifi
 import random
 
-# Index selection key numbers
-INDEX_SELECTION_KEYS = (0, 4, 8, 12)
+# Layer selection key numbers
+LAYER_SELECTION_KEYS = (0, 4, 8, 12)
 # Seconds until autosleep
 SLEEP_TIMEOUT_S = 60
 # Clock digit LED sequence
-DIGIT_LED_SEQ = [2, 3, 7, 11, 15, 14, 13, 12, 8, 4, 0, 1]
+CLOCK_LED_SEQ = [2, 3, 7, 11, 15, 14, 13, 12, 8, 4, 0, 1]
 # Total number of digits
-TOTAL_DIGITS = 12
+TOTAL_CLOCK_DIGITS = 12
 # Keys used for D6 display
-FUNCTION_AREA_KEYS = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]
+D6_AREA_KEYS = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]
+# If WiFi is not configured, don't do anything NTP or internet related
+IS_WIFI_ENABLED = os.getenv('WIFI_SSID') is not None and os.getenv('WIFI_PASSWORD') is not None
 
-# Off color
+# Colors
 COLOR_OFF = (0, 0, 0)
-# Flash color
 COLOR_WHITE = (128, 128, 128)
-# Mid red color
 COLOR_RED = (64, 0, 0)
-# Mid green color
 COLOR_GREEN = (0, 64, 0)
-# Mid blue color
 COLOR_BLUE = (0, 0, 64)
-# Mid yellow color
 COLOR_YELLOW = (64, 64, 0)
-# White when selected layer
 COLOR_SELECTED_LAYER = (32, 32, 32)
-# White for unselected layer
 COLOR_UNSELECTED_LAYER = (4, 4, 4)
-# When sleeping
 COLOR_SLEEPING = (2, 2, 2)
 
 # Timezone offset in hours, such as BST
 TZ_OFFSET_H = 1
 
 # Map of keys on each layer
-KEY_MAP = {
-  # Media/utilty
+# NOTE: Keys 0, 4, 8, 12 are the layer selection keys and can't be used for macros
+MACRO_MAP = {
+  # Media layer
   0: {
     1: {
       'control_code': ConsumerControlCode.SCAN_PREVIOUS_TRACK,
@@ -79,32 +74,32 @@ KEY_MAP = {
       'control_code': ConsumerControlCode.VOLUME_INCREMENT,
       'color': COLOR_YELLOW
     },
-    # Mute Discord mic
+    # Mute Discord mic (Ctrl + M)
     13: {
       'combo': (Keycode.CONTROL, Keycode.M),
       'color': COLOR_RED
     }
   },
-  # Applications
+  # Applications layer
   1: {
     1: {
-      'custom': lambda: run_program('spotify'),
+      'custom': lambda: search('spotify'),
       'color': COLOR_GREEN
     },
     2: {
-      'custom': lambda: run_program('steam'),
+      'custom': lambda: search('steam'),
       'color': (0, 0, 16)
     },
     3: {
-      'custom': lambda: run_program('discord'),
+      'custom': lambda: search('discord'),
       'color': (0, 32, 64)
     },
     5: {
-      'custom': lambda: run_program('firefox'),
+      'custom': lambda: search('firefox'),
       'color': (25, 0, 0)
     }
   },
-  # Windows
+  # Windows layer
   2: {
     1: {
       'combo': (Keycode.CONTROL, Keycode.SHIFT, Keycode.ESCAPE),
@@ -130,7 +125,7 @@ KEY_MAP = {
       'custom': lambda: go_to_sleep()
     }
   },
-  # Other (meta, web? numpad?)
+  # Other (meta, web? numpad?) layer
   3: {
     1: {
       'custom': lambda: roll_d6(),
@@ -147,16 +142,17 @@ KEY_MAP = {
   }
 }
 
-# Set up Keybow
+# Set up Keybow and other libraries
 keybow = PMK(Hardware())
 keys = keybow.keys
 keyboard = Keyboard(usb_hid.devices)
 layout = KeyboardLayoutUS(keyboard)
 consumer_control = ConsumerControl(usb_hid.devices)
 
+# Program state
 current_layer = 0
 is_sleeping = False
-stay_awake = False
+will_stay_awake = False
 last_used = time.time()
 last_second_index = 0
 sockets = None
@@ -173,7 +169,7 @@ def set_leds(arr, color):
 # Show D6 result visually
 #
 def show_d6_result(result):
-  for index in FUNCTION_AREA_KEYS:
+  for index in D6_AREA_KEYS:
     keys[index].set_led(*COLOR_OFF)
 
   if result == 1:
@@ -190,26 +186,27 @@ def show_d6_result(result):
     set_leds([1, 3, 5, 7, 9, 11], COLOR_WHITE)
 
 #
-# Roll a D6. Flash some numbers, then settle
+# Roll a D6. Flash some numbers, then settle on a result
 #
 def roll_d6():
-  count = 0
+  rolls = 0
   result = 0
-  while count < 20:
-    next_result = random.randint(1, 6)
-    while next_result == result:
-      next_result = random.randint(1, 6)
 
-    result = next_result
+  while rolls < 20:
+    new_result = random.randint(1, 6)
+    while new_result == result:
+      new_result = random.randint(1, 6)
+
+    result = new_result
     show_d6_result(result)
 
-    time.sleep(0.05 + (0.01 * count))
-    count = count + 1
+    time.sleep(0.05 + (0.01 * rolls))
+    rolls = rolls + 1
 
 #
 # Launch a program via Start menu query
 #
-def run_program(query):
+def search(query):
   keyboard.press(Keycode.GUI)
   keyboard.release_all()
   time.sleep(0.2)
@@ -218,7 +215,7 @@ def run_program(query):
   layout.write('\n')
 
 #
-# Go to dark sleep state
+# Go to dark sleep state and show wake button indicator
 #
 def go_to_sleep():
   global is_sleeping
@@ -232,12 +229,11 @@ def go_to_sleep():
 # Toggle stay awake mode
 #
 def toggle_stay_awake():
-  global stay_awake
-  stay_awake = not stay_awake
+  global will_stay_awake
+  will_stay_awake = not will_stay_awake
 
-  # Reset to layer 0 (long lived media controls)
-  if stay_awake:
-    set_layer(0)
+  if will_stay_awake:
+    select_layer(0)
   else:
     go_to_sleep()
 
@@ -254,25 +250,25 @@ def flash_confirm(key):
   key.set_led(*COLOR_OFF)
 
 #
-# Attach handler functions to all of the keys for this layer.
+# Select a layer and update keypad with its colors
 #
-def set_layer(new_layer):
+def select_layer(index):
   global current_layer
-  current_layer = new_layer
+  current_layer = index
 
-  # Update colors
+  # Update macro colors
   for key in keys:
     key.set_led(*COLOR_OFF)
 
     # Update layer indicator
-    if key.number in INDEX_SELECTION_KEYS:
+    if key.number in LAYER_SELECTION_KEYS:
       key.set_led(*COLOR_SELECTED_LAYER if key.number / 4 == current_layer else COLOR_UNSELECTED_LAYER)
 
     # Not configured
-    if key.number not in KEY_MAP[current_layer]:
+    if key.number not in MACRO_MAP[current_layer]:
       continue
 
-    key.set_led(*KEY_MAP[current_layer][key.number]['color'])
+    key.set_led(*MACRO_MAP[current_layer][key.number]['color'])
 
 #
 # Handle a key press event
@@ -283,7 +279,7 @@ def handle_key_press(key):
 
   last_used = time.time()
 
-  # Layer select wakes
+  # Layer select wakes the keypad up
   if key.number == 0:
     is_sleeping = False
 
@@ -291,24 +287,28 @@ def handle_key_press(key):
     return
 
   # Layer select
-  if key.number in INDEX_SELECTION_KEYS:
-    set_layer(key.number / 4)
+  if key.number in LAYER_SELECTION_KEYS:
+    select_layer(key.number / 4)
     key.set_led(*COLOR_SELECTED_LAYER)
     return
 
   # Layer configured key
-  config = KEY_MAP[current_layer][key.number]
+  config = MACRO_MAP[current_layer][key.number]
 
+  # Issues some key combination
   if 'control_code' in config:
     consumer_control.send(config['control_code'])
   
+  # Write some text as a keyboard
   if 'text' in config:
     layout.write(config['text'])
   
+  # Key combo
   if 'combo' in config:
     keyboard.press(*config['combo'])
     keyboard.release_all()
 
+  # Sequence of keys or key combos
   if 'sequence' in config:
     for item in config['sequence']:
       if isinstance(item, tuple):
@@ -319,41 +319,30 @@ def handle_key_press(key):
       keyboard.release_all()
       time.sleep(0.5)
 
+  # Run a custom functionn
   if 'custom' in config:
     config['custom']()
 
 #
-# Make a color darker
+# Make a color darker by halving its values equally
 #
-def darker(color):
+def darken(color):
   return (color[0] / 2, color[1] / 2, color[2] / 2)
 
 #
-# Get clock LED digit for hours
+# Get clock LED digit for based on number to divide by
 #
-def get_hour_digit(hours):
-  index = math.floor(math.floor((hours * 100) / 12) / 100 * TOTAL_DIGITS)
-  return DIGIT_LED_SEQ[index]
+def get_clock_digit(value, divisor):
+  index = math.floor(math.floor((value * 100) / divisor) / 100 * TOTAL_CLOCK_DIGITS)
+  return CLOCK_LED_SEQ[index]
 
 #
-# Get clock LED digit for minutes
+# Draw clock animation
 #
-def get_minute_seconds_digit(minutes):
-  index = math.floor(math.floor((minutes * 100) / 60) / 100 * TOTAL_DIGITS)
-  return DIGIT_LED_SEQ[index]
-
-#
-# Show clock animation if WiFI, else just the wake button
-#
-def show_sleep():
-  if not wifi_enabled():
-    # Key to wake
-    keys[0].set_led(*COLOR_SLEEPING)
-    return
-
+def draw_clock():
   global last_second_index
 
-  # (year, month, mday, hour, minute, second, ...)
+  # now is array of (year, month, mday, hour, minute, second, ...)
   now = time.localtime()
   hours = (now[3] + TZ_OFFSET_H) % 24
   hours_24h = hours
@@ -361,12 +350,12 @@ def show_sleep():
   minutes = now[4]
   seconds = now[5]
 
-  # Indices around the face
-  hours_index = get_hour_digit(hours_12h)
-  minutes_index = get_minute_seconds_digit(minutes)
-  seconds_index = get_minute_seconds_digit(seconds)
+  # Positions of hands around the face
+  hours_index = get_clock_digit(hours_12h, 12)
+  minutes_index = get_clock_digit(minutes, 60)
+  seconds_index = get_clock_digit(seconds, 60)
 
-  # Prevent flickering
+  # Prevent flickering by updating only for each new seconds hand position
   if seconds_index != last_second_index:
     last_second_index = seconds_index
     for key in keys:
@@ -375,24 +364,28 @@ def show_sleep():
   # Key to wake
   keys[0].set_led(*COLOR_SLEEPING)
 
-  # Don't dazzle at night
+  # Don't dazzle at night, show clock only during daytime
   if hours_24h >= 9 and hours_24h <= 23:
-    # Hands
-    keys[hours_index].set_led(*darker(COLOR_RED))
-    keys[minutes_index].set_led(*darker(COLOR_BLUE))
-    keys[seconds_index].set_led(*darker(COLOR_YELLOW))
+    keys[hours_index].set_led(*darken(COLOR_RED))
+    keys[minutes_index].set_led(*darken(COLOR_BLUE))
+    keys[seconds_index].set_led(*darken(COLOR_YELLOW))
 
 #
-# Use WiFi features only if credentials are present
+# Show clock animation if WiFI, else just the wake button
 #
-def wifi_enabled():
-  return os.getenv('WIFI_SSID') is not None and os.getenv('WIFI_PASSWORD') is not None
+def show_sleep():
+  if not IS_WIFI_ENABLED:
+    # Only show key to wake
+    keys[0].set_led(*COLOR_SLEEPING)
+    return
+
+  draw_clock()
 
 #
 # Connect to WiFi, if enabled
 #
 def connect_wifi():
-  if not wifi_enabled():
+  if not IS_WIFI_ENABLED:
     keys[0].set_led(*COLOR_YELLOW)
     time.sleep(0.3)
     keys[0].set_led(*COLOR_OFF)
@@ -412,7 +405,7 @@ def connect_wifi():
 # Update time from NTP, if WiFi enabled
 #
 def update_time():
-  if not wifi_enabled():
+  if not IS_WIFI_ENABLED:
     keys[4].set_led(*COLOR_YELLOW)
     time.sleep(0.3)
     keys[4].set_led(*COLOR_OFF)
@@ -420,12 +413,17 @@ def update_time():
 
   keys[4].set_led(*COLOR_YELLOW)
   time.sleep(0.2)
-  ntp = adafruit_ntp.NTP(pool, tz_offset=0)
-  r = rtc.RTC()
-  r.datetime = ntp.datetime
-  # os.environ['TZ'] = 'Europe/London'
-  # time.tzset()
-  keys[4].set_led(*COLOR_GREEN)
+
+  # This gets stuck sometimes
+  try:
+    ntp = adafruit_ntp.NTP(pool, tz_offset=0)
+    r = rtc.RTC()
+    r.datetime = ntp.datetime
+    keys[4].set_led(*COLOR_GREEN)
+  except Exception:
+    keys[4].set_led(*COLOR_RED)
+    time.sleep(0.5)
+    update_time()
 
 #
 # Animation played on startup with integrated steps
@@ -445,11 +443,12 @@ def boot_sequence():
   keys[12].set_led(*COLOR_UNSELECTED_LAYER)
   time.sleep(0.25)
 
-# Attach handlers
+# Attach key handlers
 for key in keys:
   @keybow.on_press(key)
   def press_handler(key):
-    if key.number not in KEY_MAP[current_layer] and key.number not in INDEX_SELECTION_KEYS:
+    # Key is never used
+    if key.number not in MACRO_MAP[current_layer] and key.number not in LAYER_SELECTION_KEYS:
       return
 
     handle_key_press(key)
@@ -457,18 +456,20 @@ for key in keys:
 
   @keybow.on_release(key)
   def release_handler(key):
+    # Key is never used
+    if key.number not in MACRO_MAP[current_layer] and key.number not in LAYER_SELECTION_KEYS:
+      return
+
     if is_sleeping:
       return
 
-    if key.number not in KEY_MAP[current_layer] and key.number not in INDEX_SELECTION_KEYS:
-      return
-
-    if key.number in INDEX_SELECTION_KEYS:
+    # Selected layer, restore color
+    if key.number in LAYER_SELECTION_KEYS:
       key.set_led(*COLOR_SELECTED_LAYER if key.number / 4 == current_layer else COLOR_UNSELECTED_LAYER)
       return
 
-    # Layer configured key
-    key.set_led(*KEY_MAP[current_layer][key.number]['color'])
+    # Layer configured key, restore color
+    key.set_led(*MACRO_MAP[current_layer][key.number]['color'])
 
 #
 # The main function
@@ -481,15 +482,15 @@ def main():
   last_used = time.time()
 
   # Default layer
-  set_layer(0)
+  select_layer(0)
 
-  # Wait for button presses
+  # Wait for button presses forever
   while True:
     keybow.update()
 
-    # Time out
+    # Time out and go to sleep if nothing is pressed for a while and won't stay awake
     now = time.time()
-    if now - last_used > SLEEP_TIMEOUT_S and not stay_awake and not is_sleeping and now > SLEEP_TIMEOUT_S:
+    if now - last_used > SLEEP_TIMEOUT_S and not will_stay_awake and not is_sleeping and now > SLEEP_TIMEOUT_S:
       go_to_sleep()
 
     if is_sleeping:
