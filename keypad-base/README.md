@@ -34,17 +34,17 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
 > If `settings.toml` has `WIFI_SSID` and `WIFI_PASSWORD`, NTP is used to show
 > a clock when asleep.
 
-* Layer 1 - media controls
+* Layer 1 - Media controls
   * Prev/play/next
   * Vol down/mute/Vol up
-  * Ctrl+M (Discord mute)
-  * Roll a D6
-* Layer 2 - Launch apps by Start menu search
+  * Discord mute (Ctrl+Shift+M)
+* Layer 2 - Applications
   * Spotify/Steam/Discord
-* Layer 3 - Windows/System and power options
+* Layer 3 - Windows
   * Task Manager/Explorer
   * Sleep/Reboot/Shutdown
-* Layer 4 - Onboard/other
+* Layer 4 - Other
+  * Roll a D6
   * Toggle 'stay awake'
   * Sleep keypad
 

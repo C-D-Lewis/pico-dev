@@ -45,8 +45,18 @@ COLOR_SLEEPING = (2, 2, 2)
 # Timezone offset in hours, such as BST
 TZ_OFFSET_H = 1
 
-# Map of keys on each layer
+# Map of keys on each layer to macro functionality
 # NOTE: Keys 0, 4, 8, 12 are the layer selection keys and can't be used for macros
+#
+# Layers are 0 - 3
+# Macros are all other keys with the following options for specifying functionality:
+#   'control_code' - Send a special keyboard control code
+#   'combo'        - Send a key combo
+#   'custom'       - Run a custom Python function
+#   'text'         - Enter some text as a keyboard
+#   'sequence'     - Send a sequence of key combos
+#   'search'       - Search in Start menu and then press enter. Useful for installed apps.
+#
 MACRO_MAP = {
   # Media layer
   0: {
@@ -83,19 +93,19 @@ MACRO_MAP = {
   # Applications layer
   1: {
     1: {
-      'custom': lambda: search('spotify'),
+      'search': 'spotify',
       'color': COLOR_GREEN
     },
     2: {
-      'custom': lambda: search('steam'),
+      'search': 'steam',
       'color': (0, 0, 16)
     },
     3: {
-      'custom': lambda: search('discord'),
+      'search': 'discord',
       'color': (0, 32, 64)
     },
     5: {
-      'custom': lambda: search('firefox'),
+      'search': 'firefox',
       'color': (25, 0, 0)
     }
   },
@@ -206,7 +216,7 @@ def roll_d6():
 #
 # Launch a program via Start menu query
 #
-def search(query):
+def start_menu_search(query):
   keyboard.press(Keycode.GUI)
   keyboard.release_all()
   time.sleep(0.2)
@@ -295,7 +305,7 @@ def handle_key_press(key):
   # Layer configured key
   config = MACRO_MAP[current_layer][key.number]
 
-  # Issues some key combination
+  # Issues some keyboard control code
   if 'control_code' in config:
     consumer_control.send(config['control_code'])
   
@@ -322,6 +332,10 @@ def handle_key_press(key):
   # Run a custom functionn
   if 'custom' in config:
     config['custom']()
+
+  # Search in Start menu and then press enter to launch
+  if 'search' in config:
+    start_menu_search(config['search'])
 
 #
 # Make a color darker by halving its values equally
