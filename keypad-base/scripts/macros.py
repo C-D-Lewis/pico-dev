@@ -38,9 +38,18 @@ COLOR_RED = (64, 0, 0)
 COLOR_GREEN = (0, 64, 0)
 COLOR_BLUE = (0, 0, 64)
 COLOR_YELLOW = (64, 64, 0)
+COLOR_PURPLE = (148, 0, 211)
 COLOR_SELECTED_LAYER = (32, 32, 32)
 COLOR_UNSELECTED_LAYER = (4, 4, 4)
 COLOR_SLEEPING = (2, 2, 2)
+
+# Other layer IDs, greater than 3
+OTHER_LAYER_RAINBOW = 4
+
+# Screensavers
+SCREENSAVER_CLOCK = 0
+SCREENSAVER_RAINBOW = 1
+SELECTED_SCREENSAVER = SCREENSAVER_CLOCK
 
 # Timezone offset in hours, such as BST
 TZ_OFFSET_H = 1
@@ -122,22 +131,26 @@ MACRO_MAP = {
     13: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.S],
       'color': (0, 0, 32),
-      'custom': lambda: go_to_sleep()
+      'custom': lambda: start_screensaver()
     },
     14: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.R],
       'color': (0, 32, 0),
-      'custom': lambda: go_to_sleep()
+      'custom': lambda: start_screensaver()
     },
     15: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.U],
       'color': (32, 0, 0),
-      'custom': lambda: go_to_sleep()
+      'custom': lambda: start_screensaver()
     }
   },
   # Other (meta, web? numpad?) layer
   3: {
-    1: {
+    2: {
+      'custom': lambda: select_layer(OTHER_LAYER_RAINBOW),
+      'color': COLOR_PURPLE
+    },
+    13: {
       'custom': lambda: roll_d6(),
       'color': COLOR_WHITE
     },
@@ -146,10 +159,13 @@ MACRO_MAP = {
       'color': (16, 16, 16)
     },
     15: {
-      'custom': lambda: go_to_sleep(),
+      'custom': lambda: start_screensaver(),
       'color': (0, 0, 16)
     }
-  }
+  },
+  # Layers below here are other pages, not part of the main macro pad
+  # Rainbow
+  4: {}
 }
 
 # Set up Keybow and other libraries
@@ -167,6 +183,7 @@ last_used = time.time()
 last_second_index = 0
 sockets = None
 session = None
+rainbow = {}
 
 #
 # Set some LEDs to same color
@@ -227,7 +244,7 @@ def start_menu_search(query):
 #
 # Go to dark sleep state and show wake button indicator
 #
-def go_to_sleep():
+def start_screensaver():
   global is_sleeping
   is_sleeping = True
 
@@ -245,7 +262,7 @@ def toggle_stay_awake():
   if will_stay_awake:
     select_layer(0)
   else:
-    go_to_sleep()
+    start_screensaver()
 
 #
 # Flash a key to confirm an action.
@@ -266,7 +283,11 @@ def select_layer(index):
   global current_layer
   current_layer = index
 
-  # Update macro colors
+  # Some other layer
+  if index > 3:
+    return
+
+  # A macro page
   for key in keys:
     key.set_led(*COLOR_OFF)
 
@@ -387,13 +408,17 @@ def draw_clock():
 #
 # Show clock animation if WiFI, else just the wake button
 #
-def show_sleep():
+def update_screensaver():
   if not IS_WIFI_ENABLED:
     # Only show key to wake
     keys[0].set_led(*COLOR_SLEEPING)
     return
 
-  draw_clock()
+  if SELECTED_SCREENSAVER == SCREENSAVER_CLOCK:
+    draw_clock()
+  elif SELECTED_SCREENSAVER == SCREENSAVER_RAINBOW:
+    for key in keys:
+      update_rainbow(key.number)
 
 #
 # Connect to WiFi, if enabled
@@ -485,6 +510,45 @@ for key in keys:
     # Layer configured key, restore color
     key.set_led(*MACRO_MAP[current_layer][key.number]['color'])
 
+def update_rainbow(key):
+  global rainbow
+
+  if key not in rainbow:
+    dist = round((key * 4) / 4) + (key % 4)
+    rainbow[key] = {
+      'rgb': [0 + (dist * 2), 64 + (dist * 4), 128 + (dist * 8)],
+      'dirs': [1, 1, 1]
+    }
+
+  # Move
+  rainbow[key]['rgb'][0] += (5 * rainbow[key]['dirs'][0])
+  rainbow[key]['rgb'][1] += (5 * rainbow[key]['dirs'][1])
+  rainbow[key]['rgb'][2] += (5 * rainbow[key]['dirs'][2])
+
+  # Cap
+  rainbow[key]['rgb'][0] = min(max(rainbow[key]['rgb'][0], 0), 255)
+  rainbow[key]['rgb'][1] = min(max(rainbow[key]['rgb'][1], 0), 255)
+  rainbow[key]['rgb'][2] = min(max(rainbow[key]['rgb'][2], 0), 255)
+
+  # Change direction
+  if rainbow[key]['rgb'][0] >= 255 or rainbow[key]['rgb'][0] <= 0:
+    rainbow[key]['dirs'][0] *= -1
+  if rainbow[key]['rgb'][1] >= 255 or rainbow[key]['rgb'][1] <= 0:
+    rainbow[key]['dirs'][1] *= -1
+  if rainbow[key]['rgb'][2] >= 255 or rainbow[key]['rgb'][2] <= 0:
+    rainbow[key]['dirs'][2] *= -1
+
+  keys[key].set_led(rainbow[key]['rgb'][0], rainbow[key]['rgb'][1], rainbow[key]['rgb'][2])
+
+#
+# Handle updates when layer is not a macro layer
+#
+def handle_other_layer():
+  # Rainbow
+  if current_layer == OTHER_LAYER_RAINBOW:
+    for key in keys:
+      update_rainbow(key.number)
+
 #
 # The main function
 #
@@ -502,13 +566,15 @@ def main():
   while True:
     keybow.update()
 
+    handle_other_layer()
+
     # Time out and go to sleep if nothing is pressed for a while and won't stay awake
     now = time.time()
     if now - last_used > SLEEP_TIMEOUT_S and not will_stay_awake and not is_sleeping and now > SLEEP_TIMEOUT_S:
-      go_to_sleep()
+      start_screensaver()
 
     if is_sleeping:
-      show_sleep()
+      update_screensaver()
 
 main()
 
