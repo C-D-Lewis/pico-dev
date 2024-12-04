@@ -49,7 +49,6 @@ OTHER_LAYER_RAINBOW = 4
 # Screensavers
 SCREENSAVER_CLOCK = 0
 SCREENSAVER_RAINBOW = 1
-SELECTED_SCREENSAVER = SCREENSAVER_CLOCK
 
 # Timezone offset in hours, such as BST
 TZ_OFFSET_H = 1
@@ -146,7 +145,7 @@ MACRO_MAP = {
   },
   # Other (meta, web? numpad?) layer
   3: {
-    2: {
+    1: {
       'custom': lambda: select_layer(OTHER_LAYER_RAINBOW),
       'color': COLOR_PURPLE
     },
@@ -177,20 +176,14 @@ consumer_control = ConsumerControl(usb_hid.devices)
 
 # Program state
 current_layer = 0
-is_sleeping = False
+screensaver_active = False
 will_stay_awake = False
 last_used = time.time()
 last_second_index = 0
 sockets = None
 session = None
-rainbow = {}
-
-#
-# Set some LEDs to same color
-#
-def set_leds(arr, color):
-  for i in arr:
-    keys[i].set_led(*color)
+rainbow_state = {}
+selected_screensaver = SCREENSAVER_CLOCK
 
 #
 # Show D6 result visually
@@ -242,11 +235,61 @@ def start_menu_search(query):
   layout.write('\n')
 
 #
-# Go to dark sleep state and show wake button indicator
+# Set some LEDs to same color
+#
+def set_leds(arr, color):
+  for i in arr:
+    keys[i].set_led(*color)
+
+#
+# Make a color darker by halving its values equally
+#
+def darken(color):
+  return (color[0] / 2, color[1] / 2, color[2] / 2)
+
+#
+# Update rainbow for a given key
+#
+def update_rainbow(key):
+  global rainbow_state
+  rainbow_min = 8
+  rainbow_max = 128
+
+  if key not in rainbow_state:
+    dist = round((key * 4) / 4) + (key % 4)
+    rainbow_state[key] = {
+      'rgb': [dist * 4, dist * 8, dist * 16],
+      'dirs': [1, 1, 1]
+    }
+
+  # Move
+  rainbow_state[key]['rgb'][0] += (5 * rainbow_state[key]['dirs'][0])
+  rainbow_state[key]['rgb'][1] += (5 * rainbow_state[key]['dirs'][1])
+  rainbow_state[key]['rgb'][2] += (5 * rainbow_state[key]['dirs'][2])
+
+  # Cap
+  rainbow_state[key]['rgb'][0] = min(max(rainbow_state[key]['rgb'][0], rainbow_min), rainbow_max)
+  rainbow_state[key]['rgb'][1] = min(max(rainbow_state[key]['rgb'][1], rainbow_min), rainbow_max)
+  rainbow_state[key]['rgb'][2] = min(max(rainbow_state[key]['rgb'][2], rainbow_min), rainbow_max)
+
+  # Change direction
+  if rainbow_state[key]['rgb'][0] >= rainbow_max or rainbow_state[key]['rgb'][0] <= rainbow_min:
+    rainbow_state[key]['dirs'][0] *= -1
+  if rainbow_state[key]['rgb'][1] >= rainbow_max or rainbow_state[key]['rgb'][1] <= rainbow_min:
+    rainbow_state[key]['dirs'][1] *= -1
+  if rainbow_state[key]['rgb'][2] >= rainbow_max or rainbow_state[key]['rgb'][2] <= rainbow_min:
+    rainbow_state[key]['dirs'][2] *= -1
+
+  keys[key].set_led(rainbow_state[key]['rgb'][0], rainbow_state[key]['rgb'][1], rainbow_state[key]['rgb'][2])
+
+#
+# Go to sleep state and show screensaver
 #
 def start_screensaver():
-  global is_sleeping
-  is_sleeping = True
+  global screensaver_active
+  screensaver_active = True
+
+  select_layer(0)
 
   for key in keys:
     key.set_led(*COLOR_OFF)
@@ -305,16 +348,16 @@ def select_layer(index):
 # Handle a key press event
 #
 def handle_key_press(key):
-  global is_sleeping
+  global screensaver_active
   global last_used
 
   last_used = time.time()
 
   # Layer select wakes the keypad up
   if key.number == 0:
-    is_sleeping = False
+    screensaver_active = False
 
-  if is_sleeping:
+  if screensaver_active:
     return
 
   # Layer select
@@ -357,12 +400,6 @@ def handle_key_press(key):
   # Search in Start menu and then press enter to launch
   if 'search' in config:
     start_menu_search(config['search'])
-
-#
-# Make a color darker by halving its values equally
-#
-def darken(color):
-  return (color[0] / 2, color[1] / 2, color[2] / 2)
 
 #
 # Get clock LED digit for based on number to divide by
@@ -414,9 +451,9 @@ def update_screensaver():
     keys[0].set_led(*COLOR_SLEEPING)
     return
 
-  if SELECTED_SCREENSAVER == SCREENSAVER_CLOCK:
+  if selected_screensaver == SCREENSAVER_CLOCK:
     draw_clock()
-  elif SELECTED_SCREENSAVER == SCREENSAVER_RAINBOW:
+  elif selected_screensaver == SCREENSAVER_RAINBOW:
     for key in keys:
       update_rainbow(key.number)
 
@@ -499,7 +536,7 @@ for key in keys:
     if key.number not in MACRO_MAP[current_layer] and key.number not in LAYER_SELECTION_KEYS:
       return
 
-    if is_sleeping:
+    if screensaver_active:
       return
 
     # Selected layer, restore color
@@ -510,40 +547,10 @@ for key in keys:
     # Layer configured key, restore color
     key.set_led(*MACRO_MAP[current_layer][key.number]['color'])
 
-def update_rainbow(key):
-  global rainbow
-
-  if key not in rainbow:
-    dist = round((key * 4) / 4) + (key % 4)
-    rainbow[key] = {
-      'rgb': [0 + (dist * 2), 64 + (dist * 4), 128 + (dist * 8)],
-      'dirs': [1, 1, 1]
-    }
-
-  # Move
-  rainbow[key]['rgb'][0] += (5 * rainbow[key]['dirs'][0])
-  rainbow[key]['rgb'][1] += (5 * rainbow[key]['dirs'][1])
-  rainbow[key]['rgb'][2] += (5 * rainbow[key]['dirs'][2])
-
-  # Cap
-  rainbow[key]['rgb'][0] = min(max(rainbow[key]['rgb'][0], 0), 255)
-  rainbow[key]['rgb'][1] = min(max(rainbow[key]['rgb'][1], 0), 255)
-  rainbow[key]['rgb'][2] = min(max(rainbow[key]['rgb'][2], 0), 255)
-
-  # Change direction
-  if rainbow[key]['rgb'][0] >= 255 or rainbow[key]['rgb'][0] <= 0:
-    rainbow[key]['dirs'][0] *= -1
-  if rainbow[key]['rgb'][1] >= 255 or rainbow[key]['rgb'][1] <= 0:
-    rainbow[key]['dirs'][1] *= -1
-  if rainbow[key]['rgb'][2] >= 255 or rainbow[key]['rgb'][2] <= 0:
-    rainbow[key]['dirs'][2] *= -1
-
-  keys[key].set_led(rainbow[key]['rgb'][0], rainbow[key]['rgb'][1], rainbow[key]['rgb'][2])
-
 #
 # Handle updates when layer is not a macro layer
 #
-def handle_other_layer():
+def update_other_layer():
   # Rainbow
   if current_layer == OTHER_LAYER_RAINBOW:
     for key in keys:
@@ -566,14 +573,14 @@ def main():
   while True:
     keybow.update()
 
-    handle_other_layer()
+    update_other_layer()
 
     # Time out and go to sleep if nothing is pressed for a while and won't stay awake
     now = time.time()
-    if now - last_used > SLEEP_TIMEOUT_S and not will_stay_awake and not is_sleeping and now > SLEEP_TIMEOUT_S:
+    if now - last_used > SLEEP_TIMEOUT_S and not will_stay_awake and not screensaver_active and now > SLEEP_TIMEOUT_S:
       start_screensaver()
 
-    if is_sleeping:
+    if screensaver_active:
       update_screensaver()
 
 main()
