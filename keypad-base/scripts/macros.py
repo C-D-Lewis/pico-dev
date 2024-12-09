@@ -18,6 +18,8 @@ import usb_hid
 import wifi
 import random
 
+################################### Constants ##################################
+
 # Layer selection key numbers
 LAYER_SELECTION_KEYS = (0, 4, 8, 12)
 # Seconds until autosleep
@@ -50,14 +52,17 @@ OTHER_LAYER_RAINBOW = 4
 SCREENSAVER_CLOCK = 0
 SCREENSAVER_RAINBOW = 1
 
+################################# Configuration ################################
+
 # Timezone offset in hours, such as BST
 TZ_OFFSET_H = 1
 
 # Map of keys on each layer to macro functionality
 # NOTE: Keys 0, 4, 8, 12 are the layer selection keys and can't be used for macros
 #
-# Layers are 0 - 3
+# The main 4 layers are 0 - 3
 # Macros are all other keys with the following options for specifying functionality:
+#
 #   'control_code' - Send a special keyboard control code
 #   'combo'        - Send a key combo
 #   'custom'       - Run a custom Python function
@@ -167,6 +172,11 @@ MACRO_MAP = {
   4: {}
 }
 
+# The current screensaver
+SELECTED_SCREENSAVED = SCREENSAVER_CLOCK
+
+##################################### State ####################################
+
 # Set up Keybow and other libraries
 keybow = PMK(Hardware())
 keys = keybow.keys
@@ -183,7 +193,34 @@ last_second_index = 0
 sockets = None
 session = None
 rainbow_state = {}
-selected_screensaver = SCREENSAVER_CLOCK
+
+##################################### Utils ####################################
+
+#
+# Launch a program via Start menu query
+#
+def start_menu_search(query):
+  keyboard.press(Keycode.GUI)
+  keyboard.release_all()
+  time.sleep(0.2)
+  layout.write(query)
+  time.sleep(1)
+  layout.write('\n')
+
+#
+# Set some LEDs to same color
+#
+def set_leds(arr, color):
+  for i in arr:
+    keys[i].set_led(*color)
+
+#
+# Make a color darker by halving its values equally
+#
+def darken(color):
+  return (color[0] / 2, color[1] / 2, color[2] / 2)
+
+################################### Roll a D6 ##################################
 
 #
 # Show D6 result visually
@@ -223,35 +260,12 @@ def roll_d6():
     time.sleep(0.05 + (0.01 * rolls))
     rolls = rolls + 1
 
-#
-# Launch a program via Start menu query
-#
-def start_menu_search(query):
-  keyboard.press(Keycode.GUI)
-  keyboard.release_all()
-  time.sleep(0.2)
-  layout.write(query)
-  time.sleep(1)
-  layout.write('\n')
-
-#
-# Set some LEDs to same color
-#
-def set_leds(arr, color):
-  for i in arr:
-    keys[i].set_led(*color)
-
-#
-# Make a color darker by halving its values equally
-#
-def darken(color):
-  return (color[0] / 2, color[1] / 2, color[2] / 2)
+################################# Screensavers #################################
 
 #
 # Update rainbow for a given key
 #
 def update_rainbow(key):
-  global rainbow_state
   rainbow_min = 8
   rainbow_max = 128
 
@@ -262,25 +276,96 @@ def update_rainbow(key):
       'dirs': [1, 1, 1]
     }
 
-  # Move
-  rainbow_state[key]['rgb'][0] += (5 * rainbow_state[key]['dirs'][0])
-  rainbow_state[key]['rgb'][1] += (5 * rainbow_state[key]['dirs'][1])
-  rainbow_state[key]['rgb'][2] += (5 * rainbow_state[key]['dirs'][2])
+  rgb = rainbow_state[key]['rgb']
+  dirs = rainbow_state[key]['dirs']
 
-  # Cap
-  rainbow_state[key]['rgb'][0] = min(max(rainbow_state[key]['rgb'][0], rainbow_min), rainbow_max)
-  rainbow_state[key]['rgb'][1] = min(max(rainbow_state[key]['rgb'][1], rainbow_min), rainbow_max)
-  rainbow_state[key]['rgb'][2] = min(max(rainbow_state[key]['rgb'][2], rainbow_min), rainbow_max)
+  # Move and bracket
+  rgb[0] += (5 * dirs[0])
+  rgb[1] += (5 * dirs[1])
+  rgb[2] += (5 * dirs[2])
+  rgb[0] = min(max(rgb[0], rainbow_min), rainbow_max)
+  rgb[1] = min(max(rgb[1], rainbow_min), rainbow_max)
+  rgb[2] = min(max(rgb[2], rainbow_min), rainbow_max)
 
   # Change direction
-  if rainbow_state[key]['rgb'][0] >= rainbow_max or rainbow_state[key]['rgb'][0] <= rainbow_min:
-    rainbow_state[key]['dirs'][0] *= -1
-  if rainbow_state[key]['rgb'][1] >= rainbow_max or rainbow_state[key]['rgb'][1] <= rainbow_min:
-    rainbow_state[key]['dirs'][1] *= -1
-  if rainbow_state[key]['rgb'][2] >= rainbow_max or rainbow_state[key]['rgb'][2] <= rainbow_min:
-    rainbow_state[key]['dirs'][2] *= -1
+  if rgb[0] >= rainbow_max or rgb[0] <= rainbow_min:
+    dirs[0] *= -1
+  if rgb[1] >= rainbow_max or rgb[1] <= rainbow_min:
+    dirs[1] *= -1
+  if rgb[2] >= rainbow_max or rgb[2] <= rainbow_min:
+    dirs[2] *= -1
 
-  keys[key].set_led(rainbow_state[key]['rgb'][0], rainbow_state[key]['rgb'][1], rainbow_state[key]['rgb'][2])
+  keys[key].set_led(rgb[0], rgb[1], rgb[2])
+
+#
+# Get clock LED digit for based on number to divide by
+#
+def get_clock_digit(value, divisor):
+  index = math.floor(math.floor((value * 100) / divisor) / 100 * TOTAL_CLOCK_DIGITS)
+  return CLOCK_LED_SEQ[index]
+
+#
+# Draw clock animation
+#
+def draw_clock():
+  global last_second_index
+
+  # now is array of (year, month, mday, hour, minute, second, ...)
+  now = time.localtime()
+  hours = (now[3] + TZ_OFFSET_H) % 24
+  hours_24h = hours
+  hours_12h = hours - 12 if hours >= 12 else hours
+  minutes = now[4]
+  seconds = now[5]
+
+  # Positions of hands around the face
+  hours_index = get_clock_digit(hours_12h, 12)
+  minutes_index = get_clock_digit(minutes, 60)
+  seconds_index = get_clock_digit(seconds, 60)
+
+  # Prevent flickering by updating only for each new seconds hand position
+  if seconds_index != last_second_index:
+    last_second_index = seconds_index
+    for key in keys:
+      key.set_led(*COLOR_OFF)
+
+  # Key to wake
+  keys[0].set_led(*COLOR_SLEEPING)
+
+  # Don't dazzle at night, show clock only during daytime
+  if hours_24h >= 9 and hours_24h <= 23:
+    keys[hours_index].set_led(*darken(COLOR_RED))
+    keys[minutes_index].set_led(*darken(COLOR_BLUE))
+    keys[seconds_index].set_led(*darken(COLOR_YELLOW))
+
+starry_sky_state = {
+  'index': 0,
+  'brightness': 0,
+}
+
+#
+# Update starry sky screensaver
+#
+# def update_starry_sky():
+#   # Pick new index
+#   if starry_sky_state['brightness'] < -64:
+#     sta
+
+
+#
+# Show clock animation if WiFI, else just the wake button
+#
+def update_screensaver():
+  if not IS_WIFI_ENABLED:
+    # Only show key to wake
+    keys[0].set_led(*COLOR_SLEEPING)
+    return
+
+  if SELECTED_SCREENSAVED == SCREENSAVER_CLOCK:
+    draw_clock()
+  elif SELECTED_SCREENSAVED == SCREENSAVER_RAINBOW:
+    for key in keys:
+      update_rainbow(key.number)
 
 #
 # Go to sleep state and show screensaver
@@ -306,6 +391,8 @@ def toggle_stay_awake():
     select_layer(0)
   else:
     start_screensaver()
+
+############################### Layers and macros ##############################
 
 #
 # Flash a key to confirm an action.
@@ -401,61 +488,7 @@ def handle_key_press(key):
   if 'search' in config:
     start_menu_search(config['search'])
 
-#
-# Get clock LED digit for based on number to divide by
-#
-def get_clock_digit(value, divisor):
-  index = math.floor(math.floor((value * 100) / divisor) / 100 * TOTAL_CLOCK_DIGITS)
-  return CLOCK_LED_SEQ[index]
-
-#
-# Draw clock animation
-#
-def draw_clock():
-  global last_second_index
-
-  # now is array of (year, month, mday, hour, minute, second, ...)
-  now = time.localtime()
-  hours = (now[3] + TZ_OFFSET_H) % 24
-  hours_24h = hours
-  hours_12h = hours - 12 if hours >= 12 else hours
-  minutes = now[4]
-  seconds = now[5]
-
-  # Positions of hands around the face
-  hours_index = get_clock_digit(hours_12h, 12)
-  minutes_index = get_clock_digit(minutes, 60)
-  seconds_index = get_clock_digit(seconds, 60)
-
-  # Prevent flickering by updating only for each new seconds hand position
-  if seconds_index != last_second_index:
-    last_second_index = seconds_index
-    for key in keys:
-      key.set_led(*COLOR_OFF)
-
-  # Key to wake
-  keys[0].set_led(*COLOR_SLEEPING)
-
-  # Don't dazzle at night, show clock only during daytime
-  if hours_24h >= 9 and hours_24h <= 23:
-    keys[hours_index].set_led(*darken(COLOR_RED))
-    keys[minutes_index].set_led(*darken(COLOR_BLUE))
-    keys[seconds_index].set_led(*darken(COLOR_YELLOW))
-
-#
-# Show clock animation if WiFI, else just the wake button
-#
-def update_screensaver():
-  if not IS_WIFI_ENABLED:
-    # Only show key to wake
-    keys[0].set_led(*COLOR_SLEEPING)
-    return
-
-  if selected_screensaver == SCREENSAVER_CLOCK:
-    draw_clock()
-  elif selected_screensaver == SCREENSAVER_RAINBOW:
-    for key in keys:
-      update_rainbow(key.number)
+#################################### Network ###################################
 
 #
 # Connect to WiFi, if enabled
@@ -501,6 +534,8 @@ def update_time():
     time.sleep(0.5)
     update_time()
 
+##################################### Main #####################################
+
 #
 # Animation played on startup with integrated steps
 #
@@ -519,34 +554,6 @@ def boot_sequence():
   keys[12].set_led(*COLOR_UNSELECTED_LAYER)
   time.sleep(0.25)
 
-# Attach key handlers
-for key in keys:
-  @keybow.on_press(key)
-  def press_handler(key):
-    # Key is never used
-    if key.number not in MACRO_MAP[current_layer] and key.number not in LAYER_SELECTION_KEYS:
-      return
-
-    handle_key_press(key)
-    flash_confirm(key)
-
-  @keybow.on_release(key)
-  def release_handler(key):
-    # Key is never used
-    if key.number not in MACRO_MAP[current_layer] and key.number not in LAYER_SELECTION_KEYS:
-      return
-
-    if screensaver_active:
-      return
-
-    # Selected layer, restore color
-    if key.number in LAYER_SELECTION_KEYS:
-      key.set_led(*COLOR_SELECTED_LAYER if key.number / 4 == current_layer else COLOR_UNSELECTED_LAYER)
-      return
-
-    # Layer configured key, restore color
-    key.set_led(*MACRO_MAP[current_layer][key.number]['color'])
-
 #
 # Handle updates when layer is not a macro layer
 #
@@ -555,6 +562,40 @@ def update_other_layer():
   if current_layer == OTHER_LAYER_RAINBOW:
     for key in keys:
       update_rainbow(key.number)
+  
+  # Other misc layer updates here
+
+#
+# Setup keybow handlers
+#
+def setup_key_handlers():
+  # Attach key handlers
+  for key in keys:
+    @keybow.on_press(key)
+    def press_handler(key):
+      # Key is never used
+      if key.number not in MACRO_MAP[current_layer] and key.number not in LAYER_SELECTION_KEYS:
+        return
+
+      handle_key_press(key)
+      flash_confirm(key)
+
+    @keybow.on_release(key)
+    def release_handler(key):
+      # Key is never used
+      if key.number not in MACRO_MAP[current_layer] and key.number not in LAYER_SELECTION_KEYS:
+        return
+
+      if screensaver_active:
+        return
+
+      # Selected layer, restore color
+      if key.number in LAYER_SELECTION_KEYS:
+        key.set_led(*COLOR_SELECTED_LAYER if key.number / 4 == current_layer else COLOR_UNSELECTED_LAYER)
+        return
+
+      # Layer configured key, restore color
+      key.set_led(*MACRO_MAP[current_layer][key.number]['color'])
 
 #
 # The main function
@@ -565,6 +606,8 @@ def main():
   boot_sequence()
   time.sleep(0.5)
   last_used = time.time()
+
+  setup_key_handlers()
 
   # Default layer
   select_layer(0)
@@ -584,4 +627,3 @@ def main():
       update_screensaver()
 
 main()
-
