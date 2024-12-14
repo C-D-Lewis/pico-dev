@@ -40,7 +40,7 @@ COLOR_RED = (64, 0, 0)
 COLOR_GREEN = (0, 64, 0)
 COLOR_BLUE = (0, 0, 64)
 COLOR_YELLOW = (64, 64, 0)
-COLOR_PURPLE = (148, 0, 211)
+COLOR_PURPLE = (78, 0, 105)
 COLOR_SELECTED_LAYER = (32, 32, 32)
 COLOR_UNSELECTED_LAYER = (4, 4, 4)
 COLOR_SLEEPING = (2, 2, 2)
@@ -99,7 +99,7 @@ MACRO_MAP = {
     },
     # Mute Discord mic (Ctrl + M)
     13: {
-      'combo': (Keycode.CONTROL, Keycode.M),
+      'combo': (Keycode.CONTROL, Keycode.SHIFT, Keycode.M),
       'color': COLOR_RED
     }
   },
@@ -154,10 +154,10 @@ MACRO_MAP = {
       'custom': lambda: select_layer(OTHER_LAYER_RAINBOW),
       'color': COLOR_PURPLE
     },
-    13: {
-      'custom': lambda: roll_d6(),
-      'color': COLOR_WHITE
-    },
+    # 13: {
+    #   'custom': lambda: roll_d6(),
+    #   'color': COLOR_WHITE
+    # },
     14: {
       'custom': lambda: toggle_stay_awake(),
       'color': (16, 16, 16)
