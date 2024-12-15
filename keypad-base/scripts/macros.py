@@ -30,8 +30,16 @@ CLOCK_LED_SEQ = [2, 3, 7, 11, 15, 14, 13, 12, 8, 4, 0, 1]
 TOTAL_CLOCK_DIGITS = 12
 # Keys used for D6 display
 D6_AREA_KEYS = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]
+
+# settings.toml configuration
+# Wi-Fi SSID
+WIFI_SSID = os.getenv('WIFI_SSID')
+# Wi-Fi password
+WIFI_PASSWORD = os.getenv('WIFI_PASSWORD')
+# The current screensaver
+SELECTED_SCREENSAVER = os.getenv('SCREENSAVER')
 # If WiFi is not configured, don't do anything NTP or internet related
-IS_WIFI_ENABLED = os.getenv('WIFI_SSID') is not None and os.getenv('WIFI_PASSWORD') is not None
+IS_WIFI_ENABLED = WIFI_SSID is not None and WIFI_PASSWORD is not None
 
 # Colors
 COLOR_OFF = (0, 0, 0)
@@ -49,8 +57,10 @@ COLOR_SLEEPING = (2, 2, 2)
 OTHER_LAYER_RAINBOW = 4
 
 # Screensavers
-SCREENSAVER_CLOCK = 0
-SCREENSAVER_RAINBOW = 1
+SCREENSAVER_NONE = "NONE"
+SCREENSAVER_CLOCK = "CLOCK"
+SCREENSAVER_RAINBOW = "RAINBOW"
+SCREENSAVER_STARRY_NIGHT = "STARRY_NIGHT"
 
 ################################# Configuration ################################
 
@@ -171,9 +181,6 @@ MACRO_MAP = {
   # Rainbow
   4: {}
 }
-
-# The current screensaver
-SELECTED_SCREENSAVED = SCREENSAVER_CLOCK
 
 ##################################### State ####################################
 
@@ -339,18 +346,35 @@ def draw_clock():
     keys[seconds_index].set_led(*darken(COLOR_YELLOW))
 
 starry_sky_state = {
-  'index': 0,
-  'brightness': 0,
+  'key': 0,
+  'val': 0,
+  'dir': 1,
 }
 
 #
 # Update starry sky screensaver
 #
-# def update_starry_sky():
-#   # Pick new index
-#   if starry_sky_state['brightness'] < -64:
-#     sta
+def update_starry_night():
+  # Update brightness
+  starry_sky_state['val'] += starry_sky_state['dir']
+  val = starry_sky_state['val']
+  keys[starry_sky_state['key']].set_led(val, val, val * 3)
 
+  # Pick new key when dark
+  if starry_sky_state['val'] <= 0:
+    last_key = starry_sky_state['key']
+    next_key = last_key
+    while next_key == last_key:
+      next_key = random.randint(0, 15)
+    
+    starry_sky_state['key'] = next_key
+    starry_sky_state['dir'] = 1
+    starry_sky_state['val'] = 1
+    keys[last_key].set_led(*COLOR_OFF)
+  
+  # When bright, reverse direction
+  elif starry_sky_state['val'] >= 64:
+    starry_sky_state['dir'] = -1
 
 #
 # Show clock animation if WiFI, else just the wake button
@@ -361,11 +385,15 @@ def update_screensaver():
     keys[0].set_led(*COLOR_SLEEPING)
     return
 
-  if SELECTED_SCREENSAVED == SCREENSAVER_CLOCK:
+  if SELECTED_SCREENSAVER == SCREENSAVER_NONE:
+    return
+  elif SELECTED_SCREENSAVER == SCREENSAVER_CLOCK:
     draw_clock()
-  elif SELECTED_SCREENSAVED == SCREENSAVER_RAINBOW:
+  elif SELECTED_SCREENSAVER == SCREENSAVER_RAINBOW:
     for key in keys:
       update_rainbow(key.number)
+  elif SELECTED_SCREENSAVER == SCREENSAVER_STARRY_NIGHT:
+    update_starry_night()
 
 #
 # Go to sleep state and show screensaver
@@ -505,7 +533,7 @@ def connect_wifi():
 
   keys[0].set_led(*COLOR_YELLOW)
   time.sleep(0.2)
-  wifi.radio.connect(os.getenv('WIFI_SSID'), os.getenv('WIFI_PASSWORD'))
+  wifi.radio.connect(WIFI_SSID, WIFI_PASSWORD)
   pool = socketpool.SocketPool(wifi.radio)
   session = adafruit_requests.Session(pool, ssl.create_default_context())
   keys[0].set_led(*COLOR_GREEN)
