@@ -77,7 +77,7 @@ TZ_OFFSET_H = 1
 #   'combo'        - Send a key combo
 #   'custom'       - Run a custom Python function
 #   'text'         - Enter some text as a keyboard
-#   'sequence'     - Send a sequence of key combos
+#   'sequence'     - Send a sequence of keys or key combos
 #   'search'       - Search in Start menu and then press enter. Useful for installed apps.
 #
 MACRO_MAP = {
@@ -85,7 +85,7 @@ MACRO_MAP = {
   0: {
     1: {
       'control_code': ConsumerControlCode.SCAN_PREVIOUS_TRACK,
-      'color': (0, 0, 64)
+      'color': COLOR_BLUE
     },
     2: {
       'control_code': ConsumerControlCode.PLAY_PAUSE,
@@ -93,7 +93,7 @@ MACRO_MAP = {
     },
     3: {
       'control_code': ConsumerControlCode.SCAN_NEXT_TRACK,
-      'color': (0, 0, 64)
+      'color': COLOR_BLUE
     },
     5: {
       'control_code': ConsumerControlCode.VOLUME_DECREMENT,
@@ -107,7 +107,7 @@ MACRO_MAP = {
       'control_code': ConsumerControlCode.VOLUME_INCREMENT,
       'color': COLOR_YELLOW
     },
-    # Mute Discord mic (Ctrl + M)
+    # Discord mute (must add this custom keybind to work in background)
     13: {
       'combo': (Keycode.CONTROL, Keycode.SHIFT, Keycode.M),
       'color': COLOR_RED
