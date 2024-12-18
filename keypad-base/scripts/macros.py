@@ -1,3 +1,13 @@
+#
+# Macro pad software for Raspberry Pi Pico W running Adafruit CircuitPython.
+#
+# If the SCREENSAVER_CLOCK screensaver isn't used, WiFi doesn't need to be
+# configured and the relevant settings file lines can be disabled with '#'.
+#
+# Latest version of this file can be found at:
+#   https://github.com/C-D-Lewis/pico-dev/blob/main/keypad-base/scripts/macros.py
+#
+
 from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.consumer_control_code import ConsumerControlCode
 from adafruit_hid.keyboard import Keyboard
@@ -169,7 +179,7 @@ MACRO_MAP = {
     #   'color': COLOR_WHITE
     # },
     14: {
-      'custom': lambda: toggle_stay_awake(),
+      'custom': lambda: toggle_screensaver_disabled(),
       'color': (16, 16, 16)
     },
     15: {
@@ -194,7 +204,7 @@ consumer_control = ConsumerControl(usb_hid.devices)
 # Program state
 current_layer = 0
 screensaver_active = False
-will_stay_awake = False
+screensaver_disabled = False
 last_used = time.time()
 last_second_index = 0
 sockets = None
@@ -380,20 +390,18 @@ def update_starry_night():
 # Show clock animation if WiFI, else just the wake button
 #
 def update_screensaver():
-  if not IS_WIFI_ENABLED:
-    # Only show key to wake
-    keys[0].set_led(*COLOR_SLEEPING)
-    return
-
   if SELECTED_SCREENSAVER == SCREENSAVER_NONE:
-    return
-  elif SELECTED_SCREENSAVER == SCREENSAVER_CLOCK:
+    pass
+  if SELECTED_SCREENSAVER == SCREENSAVER_CLOCK and IS_WIFI_ENABLED:
     draw_clock()
-  elif SELECTED_SCREENSAVER == SCREENSAVER_RAINBOW:
+  if SELECTED_SCREENSAVER == SCREENSAVER_RAINBOW:
     for key in keys:
       update_rainbow(key.number)
-  elif SELECTED_SCREENSAVER == SCREENSAVER_STARRY_NIGHT:
+  if SELECTED_SCREENSAVER == SCREENSAVER_STARRY_NIGHT:
     update_starry_night()
+  
+  # Always show wakeup key
+  keys[0].set_led(*COLOR_SLEEPING)
 
 #
 # Go to sleep state and show screensaver
@@ -411,11 +419,11 @@ def start_screensaver():
 #
 # Toggle stay awake mode
 #
-def toggle_stay_awake():
-  global will_stay_awake
-  will_stay_awake = not will_stay_awake
+def toggle_screensaver_disabled():
+  global screensaver_disabled
+  screensaver_disabled = not screensaver_disabled
 
-  if will_stay_awake:
+  if screensaver_disabled:
     select_layer(0)
   else:
     start_screensaver()
@@ -484,37 +492,42 @@ def handle_key_press(key):
   # Layer configured key
   config = MACRO_MAP[current_layer][key.number]
 
-  # Issues some keyboard control code
-  if 'control_code' in config:
-    consumer_control.send(config['control_code'])
-  
-  # Write some text as a keyboard
-  if 'text' in config:
-    layout.write(config['text'])
-  
-  # Key combo
-  if 'combo' in config:
-    keyboard.press(*config['combo'])
-    keyboard.release_all()
-
-  # Sequence of keys or key combos
-  if 'sequence' in config:
-    for item in config['sequence']:
-      if isinstance(item, tuple):
-        keyboard.press(*item)
-      else:
-        keyboard.press(item)
-      time.sleep(0.2)
+  try:
+    # Issues some keyboard control code
+    if 'control_code' in config:
+      consumer_control.send(config['control_code'])
+    
+    # Write some text as a keyboard
+    if 'text' in config:
+      layout.write(config['text'])
+    
+    # Key combo
+    if 'combo' in config:
+      keyboard.press(*config['combo'])
       keyboard.release_all()
-      time.sleep(0.5)
 
-  # Run a custom functionn
-  if 'custom' in config:
-    config['custom']()
+    # Sequence of keys or key combos
+    if 'sequence' in config:
+      for item in config['sequence']:
+        if isinstance(item, tuple):
+          keyboard.press(*item)
+        else:
+          keyboard.press(item)
+        time.sleep(0.2)
+        keyboard.release_all()
+        time.sleep(0.5)
 
-  # Search in Start menu and then press enter to launch
-  if 'search' in config:
-    start_menu_search(config['search'])
+    # Run a custom functionn
+    if 'custom' in config:
+      config['custom']()
+
+    # Search in Start menu and then press enter to launch
+    if 'search' in config:
+      start_menu_search(config['search'])
+  except Exception:
+    # Failed to send or some other error, don't crash
+    key.set_led(*COLOR_RED)
+    time.sleep(0.5)
 
 #################################### Network ###################################
 
@@ -524,7 +537,7 @@ def handle_key_press(key):
 def connect_wifi():
   if not IS_WIFI_ENABLED:
     keys[0].set_led(*COLOR_YELLOW)
-    time.sleep(0.3)
+    time.sleep(0.2)
     keys[0].set_led(*COLOR_OFF)
     return
 
@@ -544,7 +557,7 @@ def connect_wifi():
 def update_time():
   if not IS_WIFI_ENABLED:
     keys[4].set_led(*COLOR_YELLOW)
-    time.sleep(0.3)
+    time.sleep(0.2)
     keys[4].set_led(*COLOR_OFF)
     return
 
@@ -571,16 +584,18 @@ def boot_sequence():
   connect_wifi()
   time.sleep(0.25)
   keys[0].set_led(*COLOR_UNSELECTED_LAYER)
+  
   update_time()
   time.sleep(0.25)
   keys[4].set_led(*COLOR_UNSELECTED_LAYER)
+  
   keys[8].set_led(*COLOR_SELECTED_LAYER)
   time.sleep(0.25)
   keys[8].set_led(*COLOR_UNSELECTED_LAYER)
+  
   keys[12].set_led(*COLOR_SELECTED_LAYER)
   time.sleep(0.25)
   keys[12].set_led(*COLOR_UNSELECTED_LAYER)
-  time.sleep(0.25)
 
 #
 # Handle updates when layer is not a macro layer
@@ -602,16 +617,23 @@ def setup_key_handlers():
     @keybow.on_press(key)
     def press_handler(key):
       # Key is never used
-      if key.number not in MACRO_MAP[current_layer] and key.number not in LAYER_SELECTION_KEYS:
+      if (
+        key.number not in MACRO_MAP[current_layer] 
+        and key.number not in LAYER_SELECTION_KEYS
+      ):
         return
 
       handle_key_press(key)
-      flash_confirm(key)
+      if not screensaver_active:
+        flash_confirm(key)
 
     @keybow.on_release(key)
     def release_handler(key):
       # Key is never used
-      if key.number not in MACRO_MAP[current_layer] and key.number not in LAYER_SELECTION_KEYS:
+      if (
+        key.number not in MACRO_MAP[current_layer]
+        and key.number not in LAYER_SELECTION_KEYS
+      ):
         return
 
       if screensaver_active:
@@ -636,11 +658,8 @@ def main():
   last_used = time.time()
 
   setup_key_handlers()
-
-  # Default layer
   select_layer(0)
 
-  # Wait for button presses forever
   while True:
     keybow.update()
 
@@ -648,7 +667,12 @@ def main():
 
     # Time out and go to sleep if nothing is pressed for a while and won't stay awake
     now = time.time()
-    if now - last_used > SLEEP_TIMEOUT_S and not will_stay_awake and not screensaver_active and now > SLEEP_TIMEOUT_S:
+    if (
+      now - last_used > SLEEP_TIMEOUT_S
+      and not screensaver_disabled
+      and not screensaver_active
+      and now > SLEEP_TIMEOUT_S
+    ):
       start_screensaver()
 
     if screensaver_active:

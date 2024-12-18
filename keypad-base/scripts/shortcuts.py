@@ -15,42 +15,43 @@ keyboard = Keyboard(usb_hid.devices)
 layout = KeyboardLayoutUS(keyboard)
 consumer_control = ConsumerControl(usb_hid.devices)
 
+COLOR_RED = (64, 0, 0)
+COLOR_GREEN = (0, 64, 0)
+COLOR_BLUE = (0, 0, 64)
+COLOR_YELLOW = (64, 64, 0)
+
 KEY_MAP = {
-  0: {
-    'control_code': ConsumerControlCode.VOLUME_INCREMENT,
-    'color': (64, 64, 0)
-  },
   1: {
     'control_code': ConsumerControlCode.SCAN_PREVIOUS_TRACK,
-    'color': (0, 0, 64)
+    'color': COLOR_BLUE
   },
   2: {
     'control_code': ConsumerControlCode.PLAY_PAUSE,
-    'color': (0, 64, 0)
+    'color': COLOR_GREEN
   },
   3: {
     'control_code': ConsumerControlCode.SCAN_NEXT_TRACK,
-    'color': (0, 0, 64)
+    'color': COLOR_BLUE
   },
-  4: {
+  5: {
     'control_code': ConsumerControlCode.VOLUME_DECREMENT,
-    'color': (64, 64, 0)
+    'color': COLOR_YELLOW
   },
   6: {
     'control_code': ConsumerControlCode.MUTE,
-    'color': (64, 0, 0)
+    'color': COLOR_RED
+  },
+  7: {
+    'control_code': ConsumerControlCode.VOLUME_INCREMENT,
+    'color': COLOR_YELLOW
   },
   12: {
-    'combo': (Keycode.CONTROL, Keycode.M),
-    'color': (64, 0, 0)
-  },
-  14: {
-    'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.S],
-    'color': (0, 0, 32)
+    'combo': (Keycode.CONTROL, Keycode.SHIFT, Keycode.M),
+    'color': COLOR_RED
   },
   15: {
-    'combo': (Keycode.CONTROL, Keycode.SHIFT, Keycode.ESCAPE),
-    'color': (79, 11, 103)
+    'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.S],
+    'color': (0, 0, 32)
   }
 }
 
@@ -99,6 +100,7 @@ def handle_key_press(key):
 for key in keys:
   if key.number not in KEY_MAP:
     continue
+
   config = KEY_MAP[key.number]
   key.set_led(*config['color'])
 
@@ -109,7 +111,8 @@ for key in keys:
 
   @keybow.on_release(key)
   def release_handler(key):
-    key.set_led(*config['color'])
+    cfg = KEY_MAP[key.number]
+    key.set_led(*cfg['color'])
 
 # Loop input detection forever
 while True:
