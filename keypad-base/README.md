@@ -8,7 +8,9 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
 
 # Setup
 
-1. Install the Adafruit CircuitPython firmware from `firmware` to the Pico W.
+1. Install the Adafruit CircuitPython firmware from `firmware` to the Pico W by
+   copying the file to the USB drive presented when plugging in the Pico W and
+   holding the button.
 2. Copy the keypad required libraries from `lib` to `lib` on the Pico W.
 3. Copy an example from `examples` as `code.py` to test all is working.
 4. Choose a script from this repository, such as `macros.py` as `code.py` to run.
