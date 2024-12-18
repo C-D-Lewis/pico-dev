@@ -5,7 +5,7 @@
 # configured and the relevant settings file lines can be disabled with '#'.
 #
 # Latest version of this file can be found at:
-#   https://github.com/C-D-Lewis/pico-dev/blob/main/keypad-base/scripts/macros.py
+#   https://github.com/C-D-Lewis/pico-dev/blob/main/keypad-base
 #
 
 from adafruit_hid.consumer_control import ConsumerControl
