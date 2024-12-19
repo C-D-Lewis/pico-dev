@@ -210,6 +210,11 @@ last_second_index = 0
 sockets = None
 session = None
 rainbow_state = {}
+starry_sky_state = {
+  'key': 0,
+  'val': 0,
+  'dir': 1,
+}
 
 ##################################### Utils ####################################
 
@@ -330,7 +335,6 @@ def draw_clock():
   # now is array of (year, month, mday, hour, minute, second, ...)
   now = time.localtime()
   hours = (now[3] + TZ_OFFSET_H) % 24
-  hours_24h = hours
   hours_12h = hours - 12 if hours >= 12 else hours
   minutes = now[4]
   seconds = now[5]
@@ -346,20 +350,10 @@ def draw_clock():
     for key in keys:
       key.set_led(*COLOR_OFF)
 
-  # Key to wake
-  keys[0].set_led(*COLOR_SLEEPING)
-
-  # Don't dazzle at night, show clock only during daytime
-  if hours_24h >= 9 and hours_24h <= 23:
-    keys[hours_index].set_led(*darken(COLOR_RED))
-    keys[minutes_index].set_led(*darken(COLOR_BLUE))
-    keys[seconds_index].set_led(*darken(COLOR_YELLOW))
-
-starry_sky_state = {
-  'key': 0,
-  'val': 0,
-  'dir': 1,
-}
+  # Hands
+  keys[hours_index].set_led(*darken(COLOR_RED))
+  keys[minutes_index].set_led(*darken(COLOR_BLUE))
+  keys[seconds_index].set_led(*darken(COLOR_YELLOW))
 
 #
 # Update starry sky screensaver
@@ -390,14 +384,20 @@ def update_starry_night():
 # Show clock animation if WiFI, else just the wake button
 #
 def update_screensaver():
-  if SELECTED_SCREENSAVER == SCREENSAVER_NONE:
+  now = time.localtime()
+  hours_24h = (now[3] + TZ_OFFSET_H) % 24
+
+  # No dazzling screensavers between 11 PM ana 9 AM
+  if hours_24h >= 23 or hours_24h <= 9:
     pass
-  if SELECTED_SCREENSAVER == SCREENSAVER_CLOCK and IS_WIFI_ENABLED:
+  elif SELECTED_SCREENSAVER == SCREENSAVER_NONE:
+    pass
+  elif SELECTED_SCREENSAVER == SCREENSAVER_CLOCK and IS_WIFI_ENABLED:
     draw_clock()
-  if SELECTED_SCREENSAVER == SCREENSAVER_RAINBOW:
+  elif SELECTED_SCREENSAVER == SCREENSAVER_RAINBOW:
     for key in keys:
       update_rainbow(key.number)
-  if SELECTED_SCREENSAVER == SCREENSAVER_STARRY_NIGHT:
+  elif SELECTED_SCREENSAVER == SCREENSAVER_STARRY_NIGHT:
     update_starry_night()
   
   # Always show wakeup key
