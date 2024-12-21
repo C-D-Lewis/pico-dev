@@ -219,6 +219,13 @@ starry_sky_state = {
 ##################################### Utils ####################################
 
 #
+# Blank all keys
+#
+def blank():
+  for key in keys:
+    key.set_led(*COLOR_OFF)
+
+#
 # Launch a program via Start menu query
 #
 def start_menu_search(query):
@@ -389,7 +396,7 @@ def update_screensaver():
 
   # No dazzling screensavers between 11 PM ana 9 AM
   if hours_24h >= 23 or hours_24h <= 9:
-    pass
+    blank()
   elif SELECTED_SCREENSAVER == SCREENSAVER_NONE:
     pass
   elif SELECTED_SCREENSAVER == SCREENSAVER_CLOCK and IS_WIFI_ENABLED:
@@ -411,9 +418,7 @@ def start_screensaver():
   screensaver_active = True
 
   select_layer(0)
-
-  for key in keys:
-    key.set_led(*COLOR_OFF)
+  blank()
   keys[0].set_led(*COLOR_SLEEPING)
 
 #
@@ -453,10 +458,10 @@ def select_layer(index):
   if index > 3:
     return
 
+  blank()
+
   # A macro page
   for key in keys:
-    key.set_led(*COLOR_OFF)
-
     # Update layer indicator
     if key.number in LAYER_SELECTION_KEYS:
       key.set_led(*COLOR_SELECTED_LAYER if key.number / 4 == current_layer else COLOR_UNSELECTED_LAYER)
