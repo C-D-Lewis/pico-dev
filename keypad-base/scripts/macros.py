@@ -396,7 +396,7 @@ def update_screensaver():
 
   # No dazzling screensavers between 11 PM ana 9 AM
   if hours_24h >= 23 or hours_24h <= 9:
-    blank()
+    pass
   elif SELECTED_SCREENSAVER == SCREENSAVER_NONE:
     pass
   elif SELECTED_SCREENSAVER == SCREENSAVER_CLOCK and IS_WIFI_ENABLED:
