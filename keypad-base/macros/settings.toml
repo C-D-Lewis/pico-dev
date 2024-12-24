@@ -1,0 +1,6 @@
+# TOML docs: https://toml.io/en/v1.0.0
+
+# WIFI_SSID = ""
+# WIFI_PASSWORD = ""
+
+SCREENSAVER = "STARRY_NIGHT"

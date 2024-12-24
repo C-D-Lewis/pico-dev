@@ -13,27 +13,11 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
    holding the button.
 2. Copy the keypad required libraries from `lib` to `lib` on the Pico W.
 3. Copy an example from `examples` as `code.py` to test all is working.
-4. Choose a script from this repository, such as `macros.py` as `code.py` to run.
+4. Choose a script from this repository, such as `macros` as `code.py` to run.
 
+## Macros
 
-# Scripts
-
-## `shortcuts.py` - Media and keyboard shortcuts.
-
-Very simple version of `macros.py` with fewer options available.
-
-| Key | Function | Color |
-|-----|----------|-------|
-| 1 | Previous track | Blue |
-| 2 | Play/pause | Green |
-| 3 | Next track | Blue |
-| 5 | Volume Down | Yellow |
-| 6 | Mute volume | Red |
-| 7 | Volume up | Yellow |
-| 12 | Discord mute (Ctrl+Shift+M) | Red |
-| 15 | Sleep PC | Dark blue |
-
-## `macros.py` - Multi-layer functions.
+The main script for keypad dev is the multi-layer macros project.
 
 More complex version of `shortcuts.py` with multiple layers of macros available.
 
@@ -50,7 +34,25 @@ More complex version of `shortcuts.py` with multiple layers of macros available.
   * Rainbow demo
   * Toggle screensaver/Sleep keypad
 
-## `wifi_test.py` - Test Pico W WiFi connection
+## Other scripts
+
+### `shortcuts.py` - Media and keyboard shortcuts.
+
+Very simple version of `macros.py` with fewer options available.
+
+| Key | Function | Color |
+|-----|----------|-------|
+| 1 | Previous track | Blue |
+| 2 | Play/pause | Green |
+| 3 | Next track | Blue |
+| 5 | Volume Down | Yellow |
+| 6 | Mute volume | Red |
+| 7 | Volume up | Yellow |
+| 12 | Discord mute (Ctrl+Shift+M) | Red |
+| 15 | Sleep PC | Dark blue |
+
+
+### `wifi_test.py` - Test Pico W WiFi connection
 
 Test WiFi connection and/or credentials.
 

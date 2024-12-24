@@ -2,7 +2,7 @@
 # Macro pad software for Raspberry Pi Pico W running Adafruit CircuitPython.
 #
 # If the SCREENSAVER_CLOCK screensaver isn't used, WiFi doesn't need to be
-# configured and the relevant settings file lines can be disabled with '#'.
+# configured and the relevant settings.toml lines can be disabled with '#'.
 #
 # Latest version of this file can be found at:
 #   https://github.com/C-D-Lewis/pico-dev/blob/main/keypad-base
@@ -192,6 +192,7 @@ MACRO_MAP = {
   4: {}
 }
 
+
 ##################################### State ####################################
 
 # Set up Keybow and other libraries
@@ -217,13 +218,6 @@ starry_sky_state = {
 }
 
 ##################################### Utils ####################################
-
-#
-# Blank all keys
-#
-def blank():
-  for key in keys:
-    key.set_led(*COLOR_OFF)
 
 #
 # Launch a program via Start menu query
@@ -418,7 +412,9 @@ def start_screensaver():
   screensaver_active = True
 
   select_layer(0)
-  blank()
+
+  for key in keys:
+    key.set_led(*COLOR_OFF)
   keys[0].set_led(*COLOR_SLEEPING)
 
 #
@@ -458,10 +454,10 @@ def select_layer(index):
   if index > 3:
     return
 
-  blank()
-
   # A macro page
   for key in keys:
+    key.set_led(*COLOR_OFF)
+
     # Update layer indicator
     if key.number in LAYER_SELECTION_KEYS:
       key.set_led(*COLOR_SELECTED_LAYER if key.number / 4 == current_layer else COLOR_UNSELECTED_LAYER)
