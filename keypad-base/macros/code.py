@@ -399,7 +399,6 @@ def start_screensaver():
 
   for key in keys:
     key.set_led(*COLOR_OFF)
-  keys[0].set_led(*COLOR_SLEEPING)
 
 #
 # Toggle stay awake mode
@@ -521,9 +520,6 @@ def handle_key_press(key):
 #
 def connect_wifi():
   if not IS_WIFI_ENABLED:
-    keys[0].set_led(*COLOR_YELLOW)
-    time.sleep(0.2)
-    keys[0].set_led(*COLOR_OFF)
     return
 
   global pool
@@ -541,9 +537,6 @@ def connect_wifi():
 #
 def update_time():
   if not IS_WIFI_ENABLED:
-    keys[4].set_led(*COLOR_YELLOW)
-    time.sleep(0.2)
-    keys[4].set_led(*COLOR_OFF)
     return
 
   keys[4].set_led(*COLOR_YELLOW)
@@ -566,10 +559,12 @@ def update_time():
 # Animation played on startup with integrated steps
 #
 def boot_sequence():
+  keys[0].set_led(*COLOR_SELECTED_LAYER)
   connect_wifi()
   time.sleep(0.25)
   keys[0].set_led(*COLOR_UNSELECTED_LAYER)
   
+  keys[4].set_led(*COLOR_SELECTED_LAYER)
   update_time()
   time.sleep(0.25)
   keys[4].set_led(*COLOR_UNSELECTED_LAYER)
