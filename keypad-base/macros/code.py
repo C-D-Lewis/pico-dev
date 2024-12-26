@@ -63,9 +63,6 @@ COLOR_SELECTED_LAYER = (32, 32, 32)
 COLOR_UNSELECTED_LAYER = (4, 4, 4)
 COLOR_SLEEPING = (2, 2, 2)
 
-# Other layer IDs, greater than 3
-OTHER_LAYER_RAINBOW = 4
-
 # Screensavers
 SCREENSAVER_NONE = "NONE"
 SCREENSAVER_CLOCK = "CLOCK"
@@ -154,26 +151,19 @@ MACRO_MAP = {
     },
     13: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.S],
-      'color': (0, 0, 32),
-      'custom': lambda: start_screensaver()
+      'color': (0, 0, 32)
     },
     14: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.R],
-      'color': (0, 32, 0),
-      'custom': lambda: start_screensaver()
+      'color': (0, 32, 0)
     },
     15: {
       'sequence': [(Keycode.GUI, Keycode.X), Keycode.U, Keycode.U],
-      'color': (32, 0, 0),
-      'custom': lambda: start_screensaver()
+      'color': (32, 0, 0)
     }
   },
   # Other (meta, web? numpad?) layer
   3: {
-    1: {
-      'custom': lambda: select_layer(OTHER_LAYER_RAINBOW),
-      'color': COLOR_PURPLE
-    },
     # 13: {
     #   'custom': lambda: roll_d6(),
     #   'color': COLOR_WHITE
@@ -186,10 +176,7 @@ MACRO_MAP = {
       'custom': lambda: start_screensaver(),
       'color': (0, 0, 16)
     }
-  },
-  # Layers below here are other pages, not part of the main macro pad
-  # Rainbow
-  4: {}
+  }
 }
 
 
@@ -400,9 +387,6 @@ def update_screensaver():
       update_rainbow(key.number)
   elif SELECTED_SCREENSAVER == SCREENSAVER_STARRY_NIGHT:
     update_starry_night()
-  
-  # Always show wakeup key
-  keys[0].set_led(*COLOR_SLEEPING)
 
 #
 # Go to sleep state and show screensaver
@@ -599,17 +583,6 @@ def boot_sequence():
   keys[12].set_led(*COLOR_UNSELECTED_LAYER)
 
 #
-# Handle updates when layer is not a macro layer
-#
-def update_other_layer():
-  # Rainbow
-  if current_layer == OTHER_LAYER_RAINBOW:
-    for key in keys:
-      update_rainbow(key.number)
-  
-  # Other misc layer updates here
-
-#
 # Setup keybow handlers
 #
 def setup_key_handlers():
@@ -663,8 +636,6 @@ def main():
 
   while True:
     keybow.update()
-
-    update_other_layer()
 
     # Time out and go to sleep if nothing is pressed for a while and won't stay awake
     now = time.time()
