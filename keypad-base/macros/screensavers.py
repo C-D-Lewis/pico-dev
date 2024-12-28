@@ -11,7 +11,7 @@ active = False
 disabled = False
 last_second_index = 0
 rainbow_state = {}
-starry_sky_state = {
+starry_night_state = {
   'key': 0,
   'val': 0,
   'dir': 1,
@@ -105,7 +105,7 @@ def get_clock_digit(value, divisor):
 #
 # Draw clock animation
 #
-def draw_clock(keys):
+def update_clock(keys):
   global last_second_index
 
   # now is array of (year, month, mday, hour, minute, second, ...)
@@ -132,29 +132,29 @@ def draw_clock(keys):
   keys[seconds_index].set_led(*utils.darken(constants.COLOR_YELLOW))
 
 #
-# Update starry sky screensaver
+# Update starry night screensaver
 #
 def update_starry_night(keys):
   # Update brightness
-  starry_sky_state['val'] += starry_sky_state['dir']
-  val = starry_sky_state['val']
-  keys[starry_sky_state['key']].set_led(val, val, val * 3)
+  starry_night_state['val'] += starry_night_state['dir']
+  val = starry_night_state['val']
+  keys[starry_night_state['key']].set_led(val, val, val * 3)
 
   # Pick new key when dark
-  if starry_sky_state['val'] <= 0:
-    last_key = starry_sky_state['key']
+  if starry_night_state['val'] <= 0:
+    last_key = starry_night_state['key']
     next_key = last_key
     while next_key == last_key:
       next_key = random.randint(0, 15)
 
-    starry_sky_state['key'] = next_key
-    starry_sky_state['dir'] = 1
-    starry_sky_state['val'] = 1
+    starry_night_state['key'] = next_key
+    starry_night_state['dir'] = 1
+    starry_night_state['val'] = 1
     keys[last_key].set_led(*constants.COLOR_OFF)
 
   # When bright, reverse direction
-  elif starry_sky_state['val'] >= 64:
-    starry_sky_state['dir'] = -1
+  elif starry_night_state['val'] >= 64:
+    starry_night_state['dir'] = -1
 
 #
 # Show clock animation if WiFI, else just the wake button
@@ -169,7 +169,7 @@ def update_screensaver(keys):
   elif config.SCREENSAVER == constants.SCREENSAVER_NONE:
     pass
   elif config.SCREENSAVER == constants.SCREENSAVER_CLOCK and config.IS_WIFI_ENABLED:
-    draw_clock(keys)
+    update_clock(keys)
   elif config.SCREENSAVER == constants.SCREENSAVER_RAINBOW:
     for key in keys:
       update_rainbow(keys, key.number)
