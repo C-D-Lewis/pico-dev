@@ -31,8 +31,9 @@ More complex version of `shortcuts.py` with multiple layers of macros available.
   * Task Manager/Explorer
   * Sleep/Reboot/Shutdown
 * Layer 4 - Other
-  * Rainbow demo
   * Toggle screensaver/Sleep keypad
+
+Copy all files from `macros` and configure `settings.toml`.
 
 ## Other scripts
 

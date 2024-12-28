@@ -10,4 +10,4 @@
 SCREENSAVER = "STARRY_NIGHT"
 
 # Time offset in hours
-TZ_OFFSET_H = "1"
+TZ_OFFSET_H = "0"

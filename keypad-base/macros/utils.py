@@ -1,6 +1,12 @@
 from adafruit_hid.keycode import Keycode
 import time
 
+# Local modules
+import constants
+import macros
+
+current_layer = 0
+
 #
 # Launch a program via Start menu query
 #
@@ -24,3 +30,36 @@ def set_leds(keys, arr, color):
 #
 def darken(color):
   return (color[0] / 2, color[1] / 2, color[2] / 2)
+
+#
+# Select a layer and update keypad with its colors
+#
+def select_layer(keys, index):
+  global current_layer
+  current_layer = index
+
+  macro_map = macros.get_macro_map(keys)
+
+  # Some other layer
+  if index > 3:
+    return
+
+  # A macro page
+  for key in keys:
+    key.set_led(*constants.COLOR_OFF)
+
+    # Update layer indicator
+    if key.number in constants.LAYER_SELECTION_KEYS:
+      key.set_led(*constants.COLOR_SELECTED_LAYER if key.number / 4 == current_layer else constants.COLOR_UNSELECTED_LAYER)
+
+    # Not configured
+    if key.number not in macro_map[current_layer]:
+      continue
+
+    key.set_led(*macro_map[current_layer][key.number]['color'])
+
+#
+# Get the current layer index
+#
+def get_current_layer():
+  return current_layer
