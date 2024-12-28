@@ -6,7 +6,7 @@ import constants
 import screensavers
 
 #
-# IF YOU CUSTOMIZE YOUR MACROS, REMEMBER TO REPLACE THEM AFTER UPDATING THIS FILE
+# IF YOU CUSTOMIZE YOUR MACROS, REMEMBER TO INCLUDE THEM AFTER UPDATING THIS FILE
 #
 
 # Map of keys on each layer to macro functionality

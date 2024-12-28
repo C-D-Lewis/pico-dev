@@ -101,7 +101,7 @@ def draw_clock():
 
   # now is array of (year, month, mday, hour, minute, second, ...)
   now = time.localtime()
-  hours = (now[3] + constants.TZ_OFFSET_H) % 24
+  hours = (now[3] + config.TZ_OFFSET_H) % 24
   hours_12h = hours - 12 if hours >= 12 else hours
   minutes = now[4]
   seconds = now[5]
@@ -152,7 +152,7 @@ def update_starry_night():
 #
 def update_screensaver():
   now = time.localtime()
-  hours_24h = (now[3] + constants.TZ_OFFSET_H) % 24
+  hours_24h = (now[3] + config.TZ_OFFSET_H) % 24
 
   # No dazzling screensavers between 11 PM ana 9 AM
   if hours_24h >= 23 or hours_24h <= 9:

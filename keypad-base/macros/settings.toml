@@ -1,6 +1,13 @@
 # TOML docs: https://toml.io/en/v1.0.0
 
+# WiFi network name
 # WIFI_SSID = ""
-# WIFI_PASSWORD = ""
 
+# WiFi network password
+#WIFI_PASSWORD = ""
+
+# Selected screensaver
 SCREENSAVER = "STARRY_NIGHT"
+
+# Time offset in hours
+TZ_OFFSET_H = "1"
