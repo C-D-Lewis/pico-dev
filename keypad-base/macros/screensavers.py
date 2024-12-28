@@ -1,5 +1,6 @@
 # Local modules
 import constants
+import utils
 
 active = False
 disabled = False
@@ -11,7 +12,7 @@ def start_screensaver(keys):
   global active
   active = True
 
-  # select_layer(0)
+  utils.select_layer(keys, 0)
 
   for key in keys:
     key.set_led(*constants.COLOR_OFF)
@@ -23,10 +24,10 @@ def toggle_screensaver_disabled(keys):
   global disabled
   disabled = not disabled
 
-  # if disabled:
-  #   select_layer(0)
-  # else:
-  start_screensaver(keys)
+  if disabled:
+    utils.select_layer(keys, 0)
+  else:
+    start_screensaver(keys)
 
 #
 # Return if active
