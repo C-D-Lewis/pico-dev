@@ -164,10 +164,10 @@ def update_screensaver(keys):
   hours_24h = (now[3] + config.TZ_OFFSET_H) % 24
 
   # No dazzling screensavers between 11 PM ana 9 AM
-  if hours_24h >= 23 or hours_24h <= 9:
-    pass
+  if hours_24h >= 23 or (hours_24h >= 0 and hours_24h <= 9):
+    return
   elif config.SCREENSAVER == constants.SCREENSAVER_NONE:
-    pass
+    return
   elif config.SCREENSAVER == constants.SCREENSAVER_CLOCK and config.IS_WIFI_ENABLED:
     update_clock(keys)
   elif config.SCREENSAVER == constants.SCREENSAVER_RAINBOW:
