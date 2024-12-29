@@ -4,7 +4,7 @@
 # WIFI_SSID = ""
 
 # WiFi network password
-#WIFI_PASSWORD = ""
+# WIFI_PASSWORD = ""
 
 # Selected screensaver
 SCREENSAVER = "STARRY_NIGHT"
