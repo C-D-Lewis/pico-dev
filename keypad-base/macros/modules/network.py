@@ -6,9 +6,7 @@ import ssl
 import time
 import wifi
 
-# Local modules
-import constants
-import config
+from modules import config, constants
 
 #
 # Connect to WiFi, if enabled

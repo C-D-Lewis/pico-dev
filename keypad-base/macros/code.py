@@ -13,24 +13,22 @@ from adafruit_hid.consumer_control_code import ConsumerControlCode
 from adafruit_hid.keyboard import Keyboard
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
-from pmk import PMK
-from pmk.platform.rgbkeypadbase import RGBKeypadBase as Hardware
 import time
 import usb_hid
 
-# Local modules
-import constants
-import config
-import macros
-import network
-import screensavers
-import utils
+from modules import constants, network, macros, screensavers, utils
 
 ##################################### State ####################################
 
 # Set up Keybow and other libraries
+from pmk import PMK
+from pmk.platform.rgbkeypadbase import RGBKeypadBase as Hardware
 keybow = PMK(Hardware())
 keys = keybow.keys
+
+# import kpd
+# keys = kpd.get_keys()
+
 keyboard = Keyboard(usb_hid.devices)
 layout = KeyboardLayoutUS(keyboard)
 consumer_control = ConsumerControl(usb_hid.devices)

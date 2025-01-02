@@ -1,9 +1,7 @@
 from adafruit_hid.consumer_control_code import ConsumerControlCode
 from adafruit_hid.keycode import Keycode
 
-# Local modules
-import constants
-import screensavers
+from modules import constants, screensavers
 
 #
 # IF YOU CUSTOMIZE YOUR MACROS, REMEMBER TO REPLACE THEM AFTER UPDATING THIS FILE

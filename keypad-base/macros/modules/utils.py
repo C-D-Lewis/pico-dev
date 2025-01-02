@@ -1,9 +1,7 @@
 from adafruit_hid.keycode import Keycode
 import time
 
-# Local modules
-import constants
-import macros
+from modules import constants, macros
 
 current_layer = 0
 

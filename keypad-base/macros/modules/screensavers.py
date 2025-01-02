@@ -2,10 +2,7 @@ import random
 import time
 import math
 
-# Local modules
-import constants
-import config
-import utils
+from modules import config, constants, utils
 
 active = False
 disabled = False
