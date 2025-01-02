@@ -52,7 +52,6 @@ def select_layer(keys, index):
   keys[0].set_led(*darken(constants.COLOR_UNSELECTED_LAYER))
   keys[4].set_led(*constants.COLOR_UNSELECTED_LAYER)
   keys[8].set_led(*constants.COLOR_UNSELECTED_LAYER)
-  
 
 #
 # Get the current layer index

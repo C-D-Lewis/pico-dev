@@ -135,6 +135,21 @@ def get_macro_map(keys):
   }
 
   misc_layer = {
+    # Shadowplay GUI
+    1: {
+      'combo': (Keycode.ALT, Keycode.Z),
+      'color': constants.COLOR_GREEN,
+    },
+    # Shadowplay save buffer
+    2: {
+      'combo': (Keycode.ALT, Keycode.F10),
+      'color': constants.COLOR_YELLOW,
+    },
+    # Shadowplay record start/stop
+    3: {
+      'combo': (Keycode.ALT, Keycode.F9),
+      'color': constants.COLOR_RED,
+    },
     14: {
       'custom': lambda: screensavers.toggle_screensaver_disabled(keys),
       'color': (16, 16, 16)

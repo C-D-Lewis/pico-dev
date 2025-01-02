@@ -32,6 +32,7 @@ More complex version of `shortcuts.py` with multiple layers of macros available.
   * Task Manager/Explorer
   * Sleep/Reboot/Shutdown
 * Layer 4 - Other
+  * Shadowplay GUI, save buffer, toggle recording
   * Toggle screensaver/Sleep keypad
 
 Left column contains layer selection buttons:
