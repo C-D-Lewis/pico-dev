@@ -38,23 +38,21 @@ def select_layer(keys, index):
 
   macro_map = macros.get_macro_map(keys)
 
-  # Some other layer
-  if index > 3:
-    return
-
   # A macro page
   for key in keys:
     key.set_led(*constants.COLOR_OFF)
-
-    # Update layer indicator
-    if key.number in constants.LAYER_SELECTION_KEYS:
-      key.set_led(*constants.COLOR_SELECTED_LAYER if key.number / 4 == current_layer else constants.COLOR_UNSELECTED_LAYER)
 
     # Not configured
     if key.number not in macro_map[current_layer]:
       continue
 
     key.set_led(*macro_map[current_layer][key.number]['color'])
+
+  # Selection keys - home, up, down
+  keys[0].set_led(*darken(constants.COLOR_UNSELECTED_LAYER))
+  keys[4].set_led(*constants.COLOR_UNSELECTED_LAYER)
+  keys[8].set_led(*constants.COLOR_UNSELECTED_LAYER)
+  
 
 #
 # Get the current layer index

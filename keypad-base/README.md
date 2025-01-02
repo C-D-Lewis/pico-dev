@@ -33,6 +33,12 @@ More complex version of `shortcuts.py` with multiple layers of macros available.
 * Layer 4 - Other
   * Toggle screensaver/Sleep keypad
 
+Left column contains layer selection buttons:
+
+* Home
+* Previous layer
+* Next layer
+
 Copy all files from `macros` and configure `settings.toml`.
 
 ## Other scripts

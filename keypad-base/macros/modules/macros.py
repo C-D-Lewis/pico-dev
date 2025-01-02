@@ -112,3 +112,9 @@ def get_macro_map(keys):
     2: windows_layer,
     3: misc_layer
   }
+
+#
+# Number of layers to choose from.
+#
+def get_num_layers():
+  return 4

@@ -57,6 +57,7 @@ def handle_key_press(key):
   global last_used
 
   last_used = time.time()
+  current_layer = utils.get_current_layer()
 
   # Layer select wakes the keypad up
   if key.number == 0:
@@ -65,14 +66,23 @@ def handle_key_press(key):
   if screensavers.is_active():
     return
 
-  # Layer select
+  # Layer select - home, up, down
+  if key.number == 0:
+    utils.select_layer(keys, 0)
+    return
+  if key.number == 4 and current_layer > 0:
+    utils.select_layer(keys, current_layer - 1)
+    return
+  if key.number == 8 and current_layer < (macros.get_num_layers() - 1):
+    utils.select_layer(keys, current_layer + 1)
+    return
+
+  # Unhandled selection keys
   if key.number in constants.LAYER_SELECTION_KEYS:
-    utils.select_layer(keys, key.number / 4)
-    key.set_led(*constants.COLOR_SELECTED_LAYER)
     return
 
   # Layer configured key
-  config = macros.get_macro_map(keys)[utils.get_current_layer()][key.number]
+  config = macros.get_macro_map(keys)[current_layer][key.number]
 
   try:
     # Issues some keyboard control code
@@ -172,9 +182,12 @@ def setup_key_handlers():
       if screensavers.is_active():
         return
 
-      # Selected layer, restore color
+      # Home, layer up and down
+      if key.number in [0, 4, 8]:
+        keys[key.number].set_led(*constants.COLOR_UNSELECTED_LAYER)
+        return
+      # Unused selection keys
       if key.number in constants.LAYER_SELECTION_KEYS:
-        key.set_led(*constants.COLOR_SELECTED_LAYER if key.number / 4 == current_layer else constants.COLOR_UNSELECTED_LAYER)
         return
 
       # Layer configured key, restore color
