@@ -183,7 +183,7 @@ def setup_key_handlers():
         return
 
       # Home, layer up and down
-      if key.number in [0, 4, 8]:
+      if key.number in [0, 4, 8]:  # FIXME: Elegant way to use LAYER_SELECTION_KEYS?
         keys[key.number].set_led(*constants.COLOR_UNSELECTED_LAYER)
         return
       # Unused selection keys

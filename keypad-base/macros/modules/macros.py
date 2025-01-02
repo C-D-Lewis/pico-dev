@@ -1,7 +1,7 @@
 from adafruit_hid.consumer_control_code import ConsumerControlCode
 from adafruit_hid.keycode import Keycode
 
-from modules import constants, screensavers
+from modules import constants, screensavers, utils
 
 #
 # IF YOU CUSTOMIZE YOUR MACROS, REMEMBER TO REPLACE THEM AFTER UPDATING THIS FILE
@@ -50,6 +50,45 @@ def get_macro_map(keys):
     13: {
       'combo': (Keycode.CONTROL, Keycode.SHIFT, Keycode.M),
       'color': constants.COLOR_RED
+    }
+  }
+
+  numpad_layer = {
+    1: {
+      'text': '7',
+      'color': constants.COLOR_UNSELECTED_LAYER
+    },
+    2: {
+      'text': '8',
+      'color': constants.COLOR_SELECTED_LAYER
+    },
+    3: {
+      'text': '9',
+      'color': constants.COLOR_UNSELECTED_LAYER
+    },
+    5: {
+      'text': '4',
+      'color': constants.COLOR_SELECTED_LAYER
+    },
+    6: {
+      'text': '5',
+      'color': constants.COLOR_WHITE
+    },
+    7: {
+      'text': '6',
+      'color': constants.COLOR_SELECTED_LAYER
+    },
+    9: {
+      'text': '1',
+      'color': constants.COLOR_UNSELECTED_LAYER
+    },
+    10: {
+      'text': '2',
+      'color': constants.COLOR_SELECTED_LAYER
+    },
+    11: {
+      'text': '3',
+      'color': constants.COLOR_UNSELECTED_LAYER
     }
   }
 
@@ -108,13 +147,14 @@ def get_macro_map(keys):
 
   return {
     0: media_layer,
-    1: applications_layer,
-    2: windows_layer,
-    3: misc_layer
+    1: numpad_layer,
+    2: applications_layer,
+    3: windows_layer,
+    4: misc_layer
   }
 
 #
 # Number of layers to choose from.
 #
 def get_num_layers():
-  return 4
+  return 5

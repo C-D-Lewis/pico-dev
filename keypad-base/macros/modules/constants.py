@@ -1,4 +1,4 @@
-LAYER_SELECTION_KEYS = (0, 4, 8, 12)
+LAYER_SELECTION_KEYS = [0, 4, 8]
 # Seconds until autosleep
 SLEEP_TIMEOUT_S = 60
 # Clock digit LED sequence

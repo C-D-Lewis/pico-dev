@@ -21,10 +21,11 @@ The main script for keypad dev is the multi-layer macros project.
 
 More complex version of `shortcuts.py` with multiple layers of macros available.
 
-* Layer 1 - Media controls
+* Layer 0 - Media controls
   * Prev/play/next
   * Vol down/mute/Vol up
   * Discord mute (Ctrl+Shift+M)
+* Layer 1 - Numpad
 * Layer 2 - Applications
   * Spotify/Steam/Discord
 * Layer 3 - Windows
