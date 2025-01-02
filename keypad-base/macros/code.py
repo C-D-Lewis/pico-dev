@@ -217,7 +217,7 @@ def main():
       and not screensavers.is_active()
       and now > constants.SLEEP_TIMEOUT_S
     ):
-      screensavers.start_screensaver(keys)
+      screensavers.start(keys)
 
     if screensavers.is_active():
       screensavers.update_screensaver(keys)

@@ -151,11 +151,11 @@ def get_macro_map(keys):
       'color': constants.COLOR_RED,
     },
     14: {
-      'custom': lambda: screensavers.toggle_screensaver_disabled(keys),
-      'color': (16, 16, 16)
+      'custom': lambda: screensavers.toggle_disabled(keys),
+      'color': constants.COLOR_UNSELECTED_LAYER
     },
     15: {
-      'custom': lambda: screensavers.start_screensaver(keys),
+      'custom': lambda: screensavers.start(keys),
       'color': (0, 0, 16)
     }
   }

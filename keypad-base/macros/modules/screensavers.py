@@ -17,7 +17,7 @@ starry_night_state = {
 #
 # Go to sleep state and show screensaver
 #
-def start_screensaver(keys):
+def start(keys):
   global active
   active = True
 
@@ -29,7 +29,7 @@ def start_screensaver(keys):
 #
 # Toggle stay awake mode
 #
-def toggle_screensaver_disabled(keys):
+def toggle_disabled(keys):
   global disabled
   disabled = not disabled
 
