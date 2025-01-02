@@ -36,7 +36,7 @@ def toggle_disabled(keys):
   if disabled:
     utils.select_layer(keys, 0)
   else:
-    start_screensaver(keys)
+    start(keys)
 
 #
 # Return if active
