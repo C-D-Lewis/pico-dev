@@ -59,7 +59,7 @@ def handle_key_press(key):
   last_used = time.time()
   current_layer = utils.get_current_layer()
 
-  # Layer select wakes the keypad up
+  # Home wakes the keypad up
   if key.number == 0:
     screensavers.set_is_active(False)
 
@@ -81,41 +81,11 @@ def handle_key_press(key):
   if key.number in constants.LAYER_SELECTION_KEYS:
     return
 
-  # Layer configured key
-  config = macros.get_macro_map()[current_layer][key.number]
-
   try:
-    # Issues some keyboard control code
-    if 'control_code' in config:
-      consumer_control.send(config['control_code'])
+    # Layer configured key
+    config = macros.get_macro_map()[current_layer][key.number]
 
-    # Write some text as a keyboard
-    if 'text' in config:
-      layout.write(config['text'])
-
-    # Key combo
-    if 'combo' in config:
-      keyboard.press(*config['combo'])
-      keyboard.release_all()
-
-    # Sequence of keys or key combos
-    if 'sequence' in config:
-      for item in config['sequence']:
-        if isinstance(item, tuple):
-          keyboard.press(*item)
-        else:
-          keyboard.press(item)
-        time.sleep(0.2)
-        keyboard.release_all()
-        time.sleep(0.5)
-
-    # Run a custom functionn
-    if 'custom' in config:
-      config['custom']()
-
-    # Search in Start menu and then press enter to launch
-    if 'search' in config:
-      utils.start_menu_search(keyboard, layout, config['search'])
+    macros.handle(config)
   except Exception:
     # Failed to send or some other error, don't crash
     key.set_led(*constants.COLOR_RED)
@@ -166,6 +136,7 @@ def setup_key_handlers():
         return
 
       handle_key_press(key)
+
       if not screensavers.is_active():
         flash_confirm(key)
 
@@ -192,7 +163,7 @@ def setup_key_handlers():
         return
 
       # Layer configured key, restore color
-      key.set_led(*macro_map[current_layer][key.number]['color'])
+      key.set_led(*utils.parse_color(macro_map[current_layer][key.number]['color']))
 
 #
 # The main function
@@ -205,22 +176,22 @@ def main():
   last_used = time.time()
 
   setup_key_handlers()
-  # utils.select_layer(keys, 0)
+  utils.select_layer(keys, 0)
 
   while True:
     keybow.update()
 
-    # # Time out and go to sleep if nothing is pressed for a while and won't stay awake
-    # now = time.time()
-    # if (
-    #   now - last_used > constants.SLEEP_TIMEOUT_S
-    #   and not screensavers.is_disabled()
-    #   and not screensavers.is_active()
-    #   and now > constants.SLEEP_TIMEOUT_S
-    # ):
-    #   screensavers.start(keys)
+    # Time out and go to sleep if nothing is pressed for a while and won't stay awake
+    now = time.time()
+    if (
+      now - last_used > constants.SLEEP_TIMEOUT_S
+      and not screensavers.is_disabled()
+      and not screensavers.is_active()
+      and now > constants.SLEEP_TIMEOUT_S
+    ):
+      screensavers.start(keys)
 
-    # if screensavers.is_active():
-    #   screensavers.update_screensaver(keys)
+    if screensavers.is_active():
+      screensavers.update_screensaver(keys)
 
 main()

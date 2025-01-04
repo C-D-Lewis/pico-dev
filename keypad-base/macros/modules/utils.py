@@ -46,7 +46,8 @@ def select_layer(keys, index):
     if key.number not in macro_map[current_layer]:
       continue
 
-    key.set_led(*macro_map[current_layer][key.number]['color'])
+    # Constant value
+    key.set_led(*parse_color(macro_map[current_layer][key.number]['color']))
 
   # Selection keys - home, up, down
   keys[0].set_led(*darken(constants.COLOR_UNSELECTED_LAYER))
@@ -58,3 +59,13 @@ def select_layer(keys, index):
 #
 def get_current_layer():
   return current_layer
+
+#
+# Parse color from value, either a 'constants' item or rgb
+#
+def parse_color(color):
+  if 'COLOR_' in color:
+    return getattr(constants, color)
+  
+  # Assume RGB
+  return tuple(map(int, color.split(',')))

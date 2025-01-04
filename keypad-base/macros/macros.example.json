@@ -49,12 +49,12 @@
       "note": "Shadowplay record start/stop"
     },
     "14": {
-      "type": "lambda",
+      "type": "custom",
       "value": "screensavers.toggle_disabled(keys)",
       "color": "COLOR_UNSELECTED_LAYER"
     },
     "15": {
-      "type": "lambda",
+      "type": "custom",
       "value": "screensavers.start(keys)",
       "color": "0,0,16"
     }

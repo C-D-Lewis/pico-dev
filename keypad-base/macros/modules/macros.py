@@ -17,7 +17,18 @@ macro_map = {}
 #   'text'         - Enter some text as a keyboard
 #   'sequence'     - Send a sequence of keys or key combos
 #   'search'       - Search in Start menu and then press enter. Useful for installed apps.
+
 #
+# Replace JSON string keys for numbers with numbers
+#
+def int_keys(obj):
+  new_obj = {}
+  for key, value in obj.items():
+    if key.isdigit():
+      new_obj[int(key)] = value
+    else:
+      new_obj[key] = value
+  return new_obj
 
 #
 # Load macros from JSON file
@@ -26,25 +37,15 @@ def load(keys):
   global macro_map
   
   try:
-    with open(constants.MACROS_JSON_PATH, 'r', encoding='utf-8') as json_file:
+    with open(constants.MACROS_JSON_PATH, 'r') as json_file:
       macros_json = json.load(json_file)
       
-      media_layer = macros_json['media']
-
-      numpad_layer = macros_json['numpad']
-
-      applications_layer = macros_json['applications']
-
-      windows_layer = macros_json['windows']
-
-      misc_layer = macros_json['misc']
-
       macro_map = {
-        0: media_layer,
-        1: numpad_layer,
-        2: applications_layer,
-        3: windows_layer,
-        4: misc_layer
+        0: int_keys(macros_json['media']),
+        1: int_keys(macros_json['numpad']),
+        2: int_keys(macros_json['applications']),
+        3: int_keys(macros_json['windows']),
+        4: int_keys(macros_json['misc'])
       }
 
       keys[8].set_led(*constants.COLOR_GREEN)
@@ -62,4 +63,43 @@ def get_macro_map():
 # Number of layers to choose from.
 #
 def get_num_layers():
-  return 5
+  return len(macro_map)
+
+#
+# Parse and handle a macro config when pressed, based on 'type'
+#
+def handle(config):
+  # Validate
+  if not all(key in config for key in ['type', 'value', 'color']):
+    raise Exception('Missing config values')
+
+  if config['type'] == 'control_code':
+    consumer_control.send(getattr(Keycode, config['value']))
+
+  # # Write some text as a keyboard
+  # if 'text' in config:
+  #   layout.write(config['text'])
+
+  # # Key combo
+  # if 'combo' in config:
+  #   keyboard.press(*config['combo'])
+  #   keyboard.release_all()
+
+  # # Sequence of keys or key combos
+  # if 'sequence' in config:
+  #   for item in config['sequence']:
+  #     if isinstance(item, tuple):
+  #       keyboard.press(*item)
+  #     else:
+  #       keyboard.press(item)
+  #     time.sleep(0.2)
+  #     keyboard.release_all()
+  #     time.sleep(0.5)
+
+  # # Run a custom functionn
+  # if 'custom' in config:
+  #   config['custom']()
+
+  # # Search in Start menu and then press enter to launch
+  # if 'search' in config:
+  #   utils.start_menu_search(keyboard, layout, config['search'])
