@@ -82,7 +82,7 @@ def handle_key_press(key):
     return
 
   # Layer configured key
-  config = macros.get_macro_map(keys)[current_layer][key.number]
+  config = macros.get_macro_map()[current_layer][key.number]
 
   try:
     # Issues some keyboard control code
@@ -138,6 +138,7 @@ def boot_sequence():
   keys[4].set_led(*constants.COLOR_UNSELECTED_LAYER)
 
   keys[8].set_led(*constants.COLOR_SELECTED_LAYER)
+  macros.load(keys)
   time.sleep(0.25)
   keys[8].set_led(*constants.COLOR_UNSELECTED_LAYER)
 
@@ -149,7 +150,7 @@ def boot_sequence():
 # Setup keybow handlers
 #
 def setup_key_handlers():
-  macro_map = macros.get_macro_map(keys)
+  macro_map = macros.get_macro_map()
 
   # Attach key handlers
   for key in keys:
@@ -204,22 +205,22 @@ def main():
   last_used = time.time()
 
   setup_key_handlers()
-  utils.select_layer(keys, 0)
+  # utils.select_layer(keys, 0)
 
   while True:
     keybow.update()
 
-    # Time out and go to sleep if nothing is pressed for a while and won't stay awake
-    now = time.time()
-    if (
-      now - last_used > constants.SLEEP_TIMEOUT_S
-      and not screensavers.is_disabled()
-      and not screensavers.is_active()
-      and now > constants.SLEEP_TIMEOUT_S
-    ):
-      screensavers.start(keys)
+    # # Time out and go to sleep if nothing is pressed for a while and won't stay awake
+    # now = time.time()
+    # if (
+    #   now - last_used > constants.SLEEP_TIMEOUT_S
+    #   and not screensavers.is_disabled()
+    #   and not screensavers.is_active()
+    #   and now > constants.SLEEP_TIMEOUT_S
+    # ):
+    #   screensavers.start(keys)
 
-    if screensavers.is_active():
-      screensavers.update_screensaver(keys)
+    # if screensavers.is_active():
+    #   screensavers.update_screensaver(keys)
 
 main()

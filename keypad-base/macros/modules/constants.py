@@ -1,3 +1,4 @@
+# Keys used to select layers
 LAYER_SELECTION_KEYS = [0, 4, 8]
 # Seconds until autosleep
 SLEEP_TIMEOUT_S = 60
@@ -5,6 +6,8 @@ SLEEP_TIMEOUT_S = 60
 CLOCK_LED_SEQ = [2, 3, 7, 11, 15, 14, 13, 12, 8, 4, 0, 1]
 # Total number of digits
 TOTAL_CLOCK_DIGITS = 12
+# Path to macros.json file
+MACROS_JSON_PATH = "macros.json"
 
 # Colors
 COLOR_OFF = (0, 0, 0)

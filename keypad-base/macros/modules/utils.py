@@ -36,7 +36,7 @@ def select_layer(keys, index):
   global current_layer
   current_layer = index
 
-  macro_map = macros.get_macro_map(keys)
+  macro_map = macros.get_macro_map()
 
   # A macro page
   for key in keys:
@@ -52,7 +52,7 @@ def select_layer(keys, index):
   keys[0].set_led(*darken(constants.COLOR_UNSELECTED_LAYER))
   keys[4].set_led(*constants.COLOR_UNSELECTED_LAYER)
   keys[8].set_led(*constants.COLOR_UNSELECTED_LAYER)
-
+  
 #
 # Get the current layer index
 #
