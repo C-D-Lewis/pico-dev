@@ -1,12 +1,21 @@
 from adafruit_hid.consumer_control_code import ConsumerControlCode
+from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.keycode import Keycode
+from adafruit_hid.keyboard import Keyboard
+from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 import json
+import time
+import usb_hid
 
 from modules import constants, screensavers, utils
 
+keyboard = Keyboard(usb_hid.devices)
+layout = KeyboardLayoutUS(keyboard)
+consumer_control = ConsumerControl(usb_hid.devices)
+
 macro_map = {}
 
-# Map of keys on each layer to macro functionality
+# Use macros.json to map keys on each layer to macro functionality
 # NOTE: Keys 0, 4, 8, 12 are the layer selection keys and can't be used for macros
 #
 # Macros are all other keys with the following options for specifying functionality:
@@ -17,17 +26,21 @@ macro_map = {}
 #   'text'         - Enter some text as a keyboard
 #   'sequence'     - Send a sequence of keys or key combos
 #   'search'       - Search in Start menu and then press enter. Useful for installed apps.
+#
+# See macros.example.json for an example
 
 #
 # Replace JSON string keys for numbers with numbers
 #
 def int_keys(obj):
   new_obj = {}
+
   for key, value in obj.items():
     if key.isdigit():
       new_obj[int(key)] = value
     else:
       new_obj[key] = value
+
   return new_obj
 
 #
@@ -40,6 +53,7 @@ def load(keys):
     with open(constants.MACROS_JSON_PATH, 'r') as json_file:
       macros_json = json.load(json_file)
       
+      # TODO: Support new layers from macros.json
       macro_map = {
         0: int_keys(macros_json['media']),
         1: int_keys(macros_json['numpad']),
@@ -68,38 +82,47 @@ def get_num_layers():
 #
 # Parse and handle a macro config when pressed, based on 'type'
 #
-def handle(config):
+def handle(config, keys):
   # Validate
   if not all(key in config for key in ['type', 'value', 'color']):
     raise Exception('Missing config values')
 
+  # Send control code for media actions
   if config['type'] == 'control_code':
-    consumer_control.send(getattr(Keycode, config['value']))
+    consumer_control.send(getattr(ConsumerControlCode, config['value']))
+    return
 
-  # # Write some text as a keyboard
-  # if 'text' in config:
-  #   layout.write(config['text'])
+  # Write some text as a keyboard
+  if config['type'] == 'text':
+    layout.write(config['value'])
+    return
 
-  # # Key combo
-  # if 'combo' in config:
-  #   keyboard.press(*config['combo'])
-  #   keyboard.release_all()
+  # Key combo
+  if config['type'] == 'combo':
+    values = [getattr(Keycode, value) for value in config['value']]
+    keyboard.press(*tuple(values))
+    keyboard.release_all()
+    return
 
-  # # Sequence of keys or key combos
-  # if 'sequence' in config:
-  #   for item in config['sequence']:
-  #     if isinstance(item, tuple):
-  #       keyboard.press(*item)
-  #     else:
-  #       keyboard.press(item)
-  #     time.sleep(0.2)
-  #     keyboard.release_all()
-  #     time.sleep(0.5)
+  # Sequence of keys or key combos
+  if config['type'] == 'sequence':
+    for item in config['value']:
+      if isinstance(item, list):
+        values = [getattr(Keycode, value) for value in item]
+        keyboard.press(*tuple(values))
+      else:
+        keyboard.press(getattr(Keycode, item))
+      time.sleep(0.2)
+      keyboard.release_all()
+      time.sleep(0.5)
+    return
 
-  # # Run a custom functionn
-  # if 'custom' in config:
-  #   config['custom']()
+  # Run a custom function - must be runnable from this scope
+  if config['type'] == 'custom':
+    eval(config['value'])
+    return
 
-  # # Search in Start menu and then press enter to launch
-  # if 'search' in config:
-  #   utils.start_menu_search(keyboard, layout, config['search'])
+  # Search in Start menu and then press enter to launch
+  if config['type'] == 'search':
+    utils.start_menu_search(keyboard, layout, config['value'])
+    return

@@ -8,13 +8,7 @@
 #   https://github.com/C-D-Lewis/pico-dev/blob/main/keypad-base
 #
 
-from adafruit_hid.consumer_control import ConsumerControl
-from adafruit_hid.consumer_control_code import ConsumerControlCode
-from adafruit_hid.keyboard import Keyboard
-from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
-from adafruit_hid.keycode import Keycode
 import time
-import usb_hid
 
 from modules import constants, network, macros, screensavers, utils
 
@@ -26,12 +20,9 @@ from pmk.platform.rgbkeypadbase import RGBKeypadBase as Hardware
 keybow = PMK(Hardware())
 keys = keybow.keys
 
+# TODO: Shared keypad module instead of above
 # import kpd
 # keys = kpd.get_keys()
-
-keyboard = Keyboard(usb_hid.devices)
-layout = KeyboardLayoutUS(keyboard)
-consumer_control = ConsumerControl(usb_hid.devices)
 
 # Program state
 last_used = time.time()
@@ -81,11 +72,11 @@ def handle_key_press(key):
   if key.number in constants.LAYER_SELECTION_KEYS:
     return
 
+  # Attempt to run the macro
   try:
-    # Layer configured key
     config = macros.get_macro_map()[current_layer][key.number]
 
-    macros.handle(config)
+    macros.handle(config, keys)
   except Exception:
     # Failed to send or some other error, don't crash
     key.set_led(*constants.COLOR_RED)
@@ -126,11 +117,9 @@ def setup_key_handlers():
   for key in keys:
     @keybow.on_press(key)
     def press_handler(key):
-      current_layer = utils.get_current_layer()
-
       # Key is never used
       if (
-        key.number not in macro_map[current_layer]
+        key.number not in macro_map[utils.get_current_layer()]
         and key.number not in constants.LAYER_SELECTION_KEYS
       ):
         return

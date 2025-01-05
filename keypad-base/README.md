@@ -13,13 +13,16 @@ https://learn.pimoroni.com/article/circuitpython-and-keybow-2040#pmk-on-pico-rgb
    holding the button.
 2. Copy the keypad required libraries from `lib` to `lib` on the Pico W.
 3. Copy an example from `examples` as `code.py` to test all is working.
-4. Choose a script from this repository, such as `macros` as `code.py` to run.
+4. Choose a script from this repository, such as `macros` to run.
 
 ## Macros
 
 The main script for keypad dev is the multi-layer macros project.
 
 More complex version of `shortcuts.py` with multiple layers of macros available.
+
+The macros available are defined in a `macros.json` file independent of any code
+file. `macros.example.json` can be used as a starting point for:
 
 * Layer 0 - Media controls
   * Prev/play/next
@@ -28,11 +31,12 @@ More complex version of `shortcuts.py` with multiple layers of macros available.
 * Layer 1 - Numpad
 * Layer 2 - Applications
   * Spotify/Steam/Discord
+  * Firefox
 * Layer 3 - Windows
   * Task Manager/Explorer
   * Sleep/Reboot/Shutdown
 * Layer 4 - Other
-  * Shadowplay GUI, save buffer, toggle recording
+  * Shadowplay GUI/Save buffer/Toggle recording
   * Toggle screensaver/Sleep keypad
 
 Left column contains layer selection buttons:
@@ -41,7 +45,12 @@ Left column contains layer selection buttons:
 * Previous layer
 * Next layer
 
-Copy all files from `macros` and configure `settings.toml`.
+Copy all files from `macros` and configure `settings.toml` and `macros.json`.
+
+> Note: Colors from `constants.py` can be used by specifying their name, or else
+> `"r,g,b"` string can be used. Keycodes and ConsumerControlCodes can be used in
+> a similar manner by using their names as mentioned in those modules'
+> documentation.
 
 ## Other scripts
 
