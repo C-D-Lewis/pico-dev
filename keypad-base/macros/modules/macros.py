@@ -14,6 +14,7 @@ layout = KeyboardLayoutUS(keyboard)
 consumer_control = ConsumerControl(usb_hid.devices)
 
 macro_map = {}
+num_layers = 0
 
 # Use macros.json to map keys on each layer to macro functionality
 # NOTE: Keys 0, 4, 8, 12 are the layer selection keys and can't be used for macros
@@ -48,19 +49,14 @@ def int_keys(obj):
 #
 def load(keys):
   global macro_map
+  global num_layers
   
   try:
     with open(constants.MACROS_JSON_PATH, 'r') as json_file:
-      macros_json = json.load(json_file)
+      json_arr = json.load(json_file)
       
-      # TODO: Support new layers from macros.json
-      macro_map = {
-        0: int_keys(macros_json['media']),
-        1: int_keys(macros_json['numpad']),
-        2: int_keys(macros_json['applications']),
-        3: int_keys(macros_json['windows']),
-        4: int_keys(macros_json['misc'])
-      }
+      num_layers = len(json_arr)
+      macro_map = [int_keys(item) for item in json_arr]
 
       keys[8].set_led(*constants.COLOR_GREEN)
   except Exception:
@@ -77,7 +73,7 @@ def get_macro_map():
 # Number of layers to choose from.
 #
 def get_num_layers():
-  return len(macro_map)
+  return num_layers
 
 #
 # Parse and handle a macro config when pressed, based on 'type'

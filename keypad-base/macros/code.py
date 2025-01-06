@@ -67,9 +67,8 @@ def handle_key_press(key):
   if key.number == 8 and current_layer < (macros.get_num_layers() - 1):
     utils.select_layer(keys, current_layer + 1)
     return
-
-  # Unhandled selection keys
-  if key.number in constants.LAYER_SELECTION_KEYS:
+  # Unhandled nav keys
+  if key.number in constants.NAV_KEYS:
     return
 
   # Attempt to run the macro
@@ -88,24 +87,24 @@ def handle_key_press(key):
 # Animation played on startup with integrated steps
 #
 def boot_sequence():
-  keys[0].set_led(*constants.COLOR_SELECTED_LAYER)
+  keys[0].set_led(*constants.COLOR_LIGHT_GREY)
   network.connect_wifi(keys)
   time.sleep(0.25)
-  keys[0].set_led(*constants.COLOR_UNSELECTED_LAYER)
+  keys[0].set_led(*constants.COLOR_GREY)
 
-  keys[4].set_led(*constants.COLOR_SELECTED_LAYER)
+  keys[4].set_led(*constants.COLOR_LIGHT_GREY)
   network.update_time(keys)
   time.sleep(0.25)
-  keys[4].set_led(*constants.COLOR_UNSELECTED_LAYER)
+  keys[4].set_led(*constants.COLOR_GREY)
 
-  keys[8].set_led(*constants.COLOR_SELECTED_LAYER)
+  keys[8].set_led(*constants.COLOR_LIGHT_GREY)
   macros.load(keys)
   time.sleep(0.25)
-  keys[8].set_led(*constants.COLOR_UNSELECTED_LAYER)
+  keys[8].set_led(*constants.COLOR_GREY)
 
-  keys[12].set_led(*constants.COLOR_SELECTED_LAYER)
+  keys[12].set_led(*constants.COLOR_LIGHT_GREY)
   time.sleep(0.25)
-  keys[12].set_led(*constants.COLOR_UNSELECTED_LAYER)
+  keys[12].set_led(*constants.COLOR_GREY)
 
 #
 # Setup keybow handlers
@@ -120,7 +119,7 @@ def setup_key_handlers():
       # Key is never used
       if (
         key.number not in macro_map[utils.get_current_layer()]
-        and key.number not in constants.LAYER_SELECTION_KEYS
+        and key.number not in constants.NAV_KEYS
       ):
         return
 
@@ -136,7 +135,7 @@ def setup_key_handlers():
       # Key is never used
       if (
         key.number not in macro_map[current_layer]
-        and key.number not in constants.LAYER_SELECTION_KEYS
+        and key.number not in constants.NAV_KEYS
       ):
         return
 
@@ -144,11 +143,10 @@ def setup_key_handlers():
         return
 
       # Home, layer up and down
-      if key.number in [0, 4, 8]:  # FIXME: Elegant way to use LAYER_SELECTION_KEYS?
-        keys[key.number].set_led(*constants.COLOR_UNSELECTED_LAYER)
-        return
-      # Unused selection keys
-      if key.number in constants.LAYER_SELECTION_KEYS:
+      if key.number in constants.NAV_KEYS:
+        keys[0].set_led(*utils.darken(constants.COLOR_LIGHT_GREY))
+        keys[4].set_led(*(constants.COLOR_LIGHT_GREY if current_layer > 0 else constants.COLOR_OFF))
+        keys[8].set_led(*(constants.COLOR_LIGHT_GREY if current_layer < (macros.get_num_layers() - 1) else constants.COLOR_OFF))
         return
 
       # Layer configured key, restore color

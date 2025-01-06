@@ -1,5 +1,5 @@
-{
-  "media": {
+[
+  {
     "1": { "type": "control_code", "value": "SCAN_PREVIOUS_TRACK", "color": "COLOR_BLUE"   },
     "2": { "type": "control_code", "value": "PLAY_PAUSE",          "color": "COLOR_GREEN"  },
     "3": { "type": "control_code", "value": "SCAN_NEXT_TRACK",     "color": "COLOR_BLUE"   },
@@ -11,31 +11,33 @@
       "note": "Discord mute (must add this custom keybind to work in background)"
     }
   },
-  "numpad": {
-    "1":  { "type": "text", "value": "7", "color": "COLOR_UNSELECTED_LAYER" },
-    "2":  { "type": "text", "value": "8", "color": "COLOR_SELECTED_LAYER"   },
-    "3":  { "type": "text", "value": "9", "color": "COLOR_UNSELECTED_LAYER" },
-    "5":  { "type": "text", "value": "4", "color": "COLOR_SELECTED_LAYER"   },
-    "6":  { "type": "text", "value": "5", "color": "COLOR_WHITE"            },
-    "7":  { "type": "text", "value": "6", "color": "COLOR_SELECTED_LAYER"   },
-    "9":  { "type": "text", "value": "1", "color": "COLOR_UNSELECTED_LAYER" },
-    "10": { "type": "text", "value": "2", "color": "COLOR_SELECTED_LAYER"   },
-    "11": { "type": "text", "value": "3", "color": "COLOR_UNSELECTED_LAYER" }
+  {
+    "1":  { "type": "text", "value": "7", "color": "COLOR_GREY"       },
+    "2":  { "type": "text", "value": "8", "color": "COLOR_GREY"       },
+    "3":  { "type": "text", "value": "9", "color": "COLOR_GREY"       },
+    "5":  { "type": "text", "value": "4", "color": "COLOR_GREY"       },
+    "6":  { "type": "text", "value": "5", "color": "COLOR_LIGHT_GREY" },
+    "7":  { "type": "text", "value": "6", "color": "COLOR_GREY"       },
+    "9":  { "type": "text", "value": "1", "color": "COLOR_GREY"       },
+    "10": { "type": "text", "value": "2", "color": "COLOR_GREY"       },
+    "11": { "type": "text", "value": "3", "color": "COLOR_GREY"       },
+    "14": { "type": "text", "value": "0", "color": "COLOR_GREY"       }
   },
-  "applications": {
+  {
     "1": { "type": "search", "value": "spotify", "color": "COLOR_GREEN" },
     "2": { "type": "search", "value": "steam",   "color": "0,0,16"      },
     "3": { "type": "search", "value": "discord", "color": "0,32,64"     },
-    "5": { "type": "search", "value": "firefox", "color": "25,0,0"      }
+    "5": { "type": "search", "value": "firefox", "color": "25,0,0"      },
+    "6": { "type": "search", "value": "proton",  "color": "0,128,32"    }
   },
-  "windows": {
+  {
     "1":  { "type": "combo",    "value": ["CONTROL", "SHIFT", "ESCAPE"], "color": "0,32,0"       },
     "2":  { "type": "combo",    "value": ["GUI", "E"],                   "color": "COLOR_YELLOW" },
     "13": { "type": "sequence", "value": [["GUI", "X"], "U", "S"],       "color": "0,0,32"       },
     "14": { "type": "sequence", "value": [["GUI", "X"], "U", "R"],       "color": "0,32,0"       },
     "15": { "type": "sequence", "value": [["GUI", "X"], "U", "U"],       "color": "32,0,0"       }
   },
-  "misc": {
+  {
     "1": {
       "type": "combo", "value": ["ALT", "Z"], "color": "COLOR_GREEN",
       "note": "Shadowplay GUI"
@@ -51,7 +53,7 @@
     "14": {
       "type": "custom",
       "value": "screensavers.toggle_disabled(keys)",
-      "color": "COLOR_UNSELECTED_LAYER"
+      "color": "COLOR_GREY"
     },
     "15": {
       "type": "custom",
@@ -59,4 +61,4 @@
       "color": "0,0,16"
     }
   }
-}
+]

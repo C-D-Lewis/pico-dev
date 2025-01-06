@@ -40,7 +40,8 @@ def select_layer(keys, index):
 
   # A macro page
   for key in keys:
-    key.set_led(*constants.COLOR_OFF)
+    if key.number not in constants.NAV_KEYS:
+      key.set_led(*constants.COLOR_OFF)
 
     # Not configured
     if key.number not in macro_map[current_layer]:
@@ -50,9 +51,9 @@ def select_layer(keys, index):
     key.set_led(*parse_color(macro_map[current_layer][key.number]['color']))
 
   # Selection keys - home, up, down
-  keys[0].set_led(*darken(constants.COLOR_UNSELECTED_LAYER))
-  keys[4].set_led(*constants.COLOR_UNSELECTED_LAYER)
-  keys[8].set_led(*constants.COLOR_UNSELECTED_LAYER)
+  keys[0].set_led(*darken(constants.COLOR_LIGHT_GREY))
+  keys[4].set_led(*(constants.COLOR_LIGHT_GREY if current_layer > 0 else constants.COLOR_OFF))
+  keys[8].set_led(*(constants.COLOR_LIGHT_GREY if current_layer < (macros.get_num_layers() - 1) else constants.COLOR_OFF))
   
 #
 # Get the current layer index

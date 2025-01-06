@@ -1,5 +1,5 @@
 # Keys used to select layers
-LAYER_SELECTION_KEYS = [0, 4, 8]
+NAV_KEYS = [0, 4, 8]
 # Seconds until autosleep
 SLEEP_TIMEOUT_S = 60
 # Clock digit LED sequence
@@ -17,8 +17,8 @@ COLOR_GREEN = (0, 64, 0)
 COLOR_BLUE = (0, 0, 64)
 COLOR_YELLOW = (64, 64, 0)
 COLOR_PURPLE = (78, 0, 105)
-COLOR_SELECTED_LAYER = (32, 32, 32)
-COLOR_UNSELECTED_LAYER = (6, 6, 6)
+COLOR_LIGHT_GREY = (32, 32, 32)
+COLOR_GREY = (6, 6, 6)
 COLOR_SLEEPING = (2, 2, 2)
 
 # Screensavers
