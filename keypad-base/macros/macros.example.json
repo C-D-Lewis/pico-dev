@@ -27,8 +27,7 @@
     "1": { "type": "search", "value": "spotify", "color": "COLOR_GREEN" },
     "2": { "type": "search", "value": "steam",   "color": "0,0,16"      },
     "3": { "type": "search", "value": "discord", "color": "0,32,64"     },
-    "5": { "type": "search", "value": "firefox", "color": "25,0,0"      },
-    "6": { "type": "search", "value": "proton",  "color": "0,128,32"    }
+    "5": { "type": "search", "value": "firefox", "color": "25,0,0"      }
   },
   {
     "1":  { "type": "combo",    "value": ["CONTROL", "SHIFT", "ESCAPE"], "color": "0,32,0"       },
