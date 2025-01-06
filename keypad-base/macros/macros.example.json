@@ -53,11 +53,6 @@
       "type": "custom",
       "value": "screensavers.toggle_disabled(keys)",
       "color": "COLOR_GREY"
-    },
-    "15": {
-      "type": "custom",
-      "value": "screensavers.start(keys)",
-      "color": "0,0,16"
     }
   }
 ]

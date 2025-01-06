@@ -21,8 +21,6 @@ def start(keys):
   global active
   active = True
 
-  utils.select_layer(keys, 0)
-
   for key in keys:
     key.set_led(*constants.COLOR_OFF)
 
