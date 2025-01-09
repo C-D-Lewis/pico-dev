@@ -51,9 +51,10 @@ def handle_key_press(key):
   current_layer = utils.get_current_layer()
 
   # Home wakes the keypad up
-  if key.number == 0 and screensavers.is_active():
-    screensavers.set_is_active(False)
-    utils.select_layer(keys, 0)
+  if screensavers.is_active():
+    if key.number == 0:
+      screensavers.set_is_active(False)
+      utils.select_layer(keys, 0)
     return
 
   # Layer select - sleep, up, down
