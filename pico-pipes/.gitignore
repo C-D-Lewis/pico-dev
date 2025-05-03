@@ -7,3 +7,5 @@ build/*
 # outputs
 notes.h
 notes.py
+
+midi

@@ -202,7 +202,7 @@ def main():
   data['timeline'] = sorted(data['timeline'], key = lambda p: p['on_at'])
 
   # Compile C header file table
-  output = '$ GENERATED WITH pico-pipes/compile.py\n\n'
+  output = '// GENERATED WITH pico-pipes/compile.py\n\n'
   output += f"#define NUM_NOTES {len(data['timeline'])}\n\n"
   output += '// Order is track, pitch, on_at, off_at\n'
   output += 'static const float* NOTE_TABLE[] = {\n'
