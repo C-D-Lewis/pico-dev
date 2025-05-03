@@ -43,7 +43,11 @@ cd && mkdir pico
 git clone -b master https://github.com/raspberrypi/pico-sdk.git
 cd pico-sdk/
 git submodule update --init
+```
 
+For MacOS:
+
+```
 # Add export PICO_SDK_PATH="$HOME/pico/pico-sdk"
 nano ~/.bash_profile
 source ~/.bash_profile
@@ -52,7 +56,17 @@ source ~/.bash_profile
 brew install cmake
 brew tap ArmMbed/homebrew-formulae
 brew install arm-none-eabi-gcc
+```
 
+For Linux (from Pi pico-sdk repo):
+
+```
+sudo apt install cmake python3 build-essential gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
+```
+
+Build with cmake:
+
+```
 # In this repo, configure for GCC
 mkdir build
 cd build
