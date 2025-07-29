@@ -37,6 +37,13 @@ def toggle_disabled(keys):
     start(keys)
 
 #
+# Set disabled state
+#
+def set_disabled(v):
+  global disabled
+  disabled = v
+
+#
 # Return if active
 #
 def is_active():
