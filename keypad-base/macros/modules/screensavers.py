@@ -165,8 +165,11 @@ def update_screensaver(keys):
   now = time.localtime()
   hours_24h = (now[3] + config.TZ_OFFSET_H) % 24
 
-  # No dazzling screensavers between 11 PM ana 9 AM
-  if hours_24h >= 23 or (hours_24h >= 0 and hours_24h < 9):
+  # No dazzling screensavers during inactive hours
+  if hours_24h >= constants.OFF_START_H or (hours_24h >= 0 and hours_24h < constants.OFF_END_H):
+    # Wasteful to write off but prevents one LED being left on when it ticks over
+    for key in keys:
+      key.set_led(*constants.COLOR_OFF)
     return
   elif config.SCREENSAVER == constants.SCREENSAVER_NONE:
     return

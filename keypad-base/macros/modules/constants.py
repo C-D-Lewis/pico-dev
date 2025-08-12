@@ -8,6 +8,10 @@ CLOCK_LED_SEQ = [2, 3, 7, 11, 15, 14, 13, 12, 8, 4, 0, 1]
 TOTAL_CLOCK_DIGITS = 12
 # Path to macros.json file
 MACROS_JSON_PATH = "macros.json"
+# Start of inactive hours
+OFF_START_H = 23
+# End of inactive hours
+OFF_END_H = 9
 
 # Colors
 COLOR_OFF = (0, 0, 0)
