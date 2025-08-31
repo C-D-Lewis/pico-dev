@@ -7,7 +7,7 @@
 # WIFI_PASSWORD = ""
 
 # Selected screensaver
-SCREENSAVER = "STARRY_NIGHT"
+SCREENSAVER = "SINGLE_KEY"
 
 # Time offset in hours
 TZ_OFFSET_H = "0"

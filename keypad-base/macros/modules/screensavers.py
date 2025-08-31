@@ -178,5 +178,7 @@ def update_screensaver(keys):
   elif config.SCREENSAVER == constants.SCREENSAVER_RAINBOW:
     for key in keys:
       update_rainbow(keys, key.number)
+  elif config.SCREENSAVER == constants.SCREENSAVER_SINGLE_KEY:
+    keys[0].set_led(*constants.COLOR_SLEEPING)
   if config.SCREENSAVER == constants.SCREENSAVER_STARRY_NIGHT:
     update_starry_night(keys)
