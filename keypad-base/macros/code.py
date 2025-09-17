@@ -182,6 +182,7 @@ def main():
       screensavers.start(keys)
 
     if screensavers.is_active():
+      time.sleep(1)
       screensavers.update_screensaver(keys)
 
 main()
