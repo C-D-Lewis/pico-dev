@@ -1,7 +1,5 @@
 # Keys used to select layers
 NAV_KEYS = [0, 4, 8]
-# Seconds until autosleep
-SLEEP_TIMEOUT_S = 60
 # Clock digit LED sequence
 CLOCK_LED_SEQ = [2, 3, 7, 11, 15, 14, 13, 12, 8, 4, 0, 1]
 # Total number of digits

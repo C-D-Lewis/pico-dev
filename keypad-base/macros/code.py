@@ -10,7 +10,7 @@
 
 import time
 
-from modules import constants, network, macros, screensavers, utils
+from modules import constants, network, macros, screensavers, utils, config
 
 ##################################### State ####################################
 
@@ -23,9 +23,6 @@ keys = keybow.keys
 # TODO: Shared keypad module instead of above
 # import kpd
 # keys = kpd.get_keys()
-
-# Program state
-last_used = time.time()
 
 ############################### Layers and macros ##############################
 
@@ -45,9 +42,6 @@ def flash_confirm(key):
 # Handle a key press event
 #
 def handle_key_press(key):
-  global last_used
-
-  last_used = time.time()
   current_layer = utils.get_current_layer()
 
   # Home wakes the keypad up
@@ -55,7 +49,6 @@ def handle_key_press(key):
   if screensavers.is_active():
     if key.number == 0:
       screensavers.set_is_active(False)
-      screensavers.set_disabled(False)
       utils.select_layer(keys, 0)
 
     return
@@ -76,9 +69,9 @@ def handle_key_press(key):
 
   # Attempt to run the macro
   try:
-    config = macros.get_macro_map()[current_layer][key.number]
+    macro_map = macros.get_macro_map()[current_layer][key.number]
 
-    macros.handle(config, keys)
+    macros.handle(macro_map, keys)
   except Exception:
     # Failed to send or some other error, don't crash
     key.set_led(*constants.COLOR_RED)
@@ -159,27 +152,14 @@ def setup_key_handlers():
 # The main function
 #
 def main():
-  global last_used
-
   boot_sequence()
   time.sleep(0.5)
-  last_used = time.time()
 
   setup_key_handlers()
   utils.select_layer(keys, 0)
 
   while True:
     keybow.update()
-
-    # Time out and go to sleep if nothing is pressed for a while and won't stay awake
-    now = time.time()
-    if (
-      now - last_used > constants.SLEEP_TIMEOUT_S
-      and not screensavers.is_disabled()
-      and not screensavers.is_active()
-      and now > constants.SLEEP_TIMEOUT_S
-    ):
-      screensavers.start(keys)
 
     if screensavers.is_active():
       time.sleep(1)

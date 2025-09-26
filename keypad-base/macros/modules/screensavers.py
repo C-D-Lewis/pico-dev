@@ -5,7 +5,6 @@ import math
 from modules import config, constants, utils
 
 active = False
-disabled = False
 last_second_index = 0
 rainbow_state = {}
 starry_night_state = {
@@ -25,25 +24,6 @@ def start(keys):
     key.set_led(*constants.COLOR_OFF)
 
 #
-# Toggle stay awake mode
-#
-def toggle_disabled(keys):
-  global disabled
-  disabled = not disabled
-
-  if disabled:
-    utils.select_layer(keys, 0)
-  else:
-    start(keys)
-
-#
-# Set disabled state
-#
-def set_disabled(v):
-  global disabled
-  disabled = v
-
-#
 # Return if active
 #
 def is_active():
@@ -55,12 +35,6 @@ def is_active():
 def set_is_active(v):
   global active
   active = v
-
-#
-# Return if disabled
-#
-def is_disabled():
-  return disabled
 
 #
 # Update rainbow for a given key
