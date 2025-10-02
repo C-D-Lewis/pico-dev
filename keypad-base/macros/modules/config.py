@@ -9,7 +9,7 @@ WIFI_SSID = os.getenv('WIFI_SSID')
 WIFI_PASSWORD = os.getenv('WIFI_PASSWORD')
 
 # The current screensaver - select from constants.py
-SCREENSAVER = os.getenv('SCREENSAVER', constants.SCREENSAVER_SINGLE_KEY)
+SCREENSAVER = os.getenv('SCREENSAVER', constants.SCREENSAVER_STARRY_NIGHT)
 
 # If WiFi is not configured, don't do anything NTP or internet related
 IS_WIFI_ENABLED = WIFI_SSID is not None and WIFI_PASSWORD is not None
