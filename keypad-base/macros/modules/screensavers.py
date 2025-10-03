@@ -31,10 +31,7 @@ def toggle_disabled(keys):
   global disabled
   disabled = not disabled
 
-  if disabled:
-    utils.select_layer(keys, 0)
-  else:
-    start(keys)
+  keys[12].set_led(*constants.COLOR_DARK_BLUE if not disabled else constants.COLOR_OFF)
 
 #
 # Set disabled state

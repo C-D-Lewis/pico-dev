@@ -1,7 +1,7 @@
 from adafruit_hid.keycode import Keycode
 import time
 
-from modules import constants, macros
+from modules import constants, macros, screensavers
 
 current_layer = 0
 
@@ -50,10 +50,11 @@ def select_layer(keys, index):
     # Constant value
     key.set_led(*parse_color(macro_map[current_layer][key.number]['color']))
 
-  # Selection keys - home, up, down
+  # Function keys - home, up, down
   keys[0].set_led(*darken(constants.COLOR_LIGHT_GREY))
   keys[4].set_led(*(constants.COLOR_LIGHT_GREY if current_layer > 0 else constants.COLOR_OFF))
   keys[8].set_led(*(constants.COLOR_LIGHT_GREY if current_layer < (macros.get_num_layers() - 1) else constants.COLOR_OFF))
+  keys[12].set_led(*constants.COLOR_DARK_BLUE if not screensavers.is_disabled() else constants.COLOR_OFF)
   
 #
 # Get the current layer index

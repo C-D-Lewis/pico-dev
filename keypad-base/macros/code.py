@@ -60,7 +60,7 @@ def handle_key_press(key):
 
     return
 
-  # Layer select - sleep, up, down
+  # Function sidebar - sleep, up, down
   if key.number == 0:
     screensavers.start(keys)
     return
@@ -69,6 +69,9 @@ def handle_key_press(key):
     return
   if key.number == 8 and current_layer < (macros.get_num_layers() - 1):
     utils.select_layer(keys, current_layer + 1)
+    return
+  if key.number == 12:
+    screensavers.toggle_disabled(keys)
     return
   # Unhandled nav keys
   if key.number in constants.NAV_KEYS:
@@ -150,6 +153,7 @@ def setup_key_handlers():
         keys[0].set_led(*utils.darken(constants.COLOR_LIGHT_GREY))
         keys[4].set_led(*(constants.COLOR_LIGHT_GREY if current_layer > 0 else constants.COLOR_OFF))
         keys[8].set_led(*(constants.COLOR_LIGHT_GREY if current_layer < (macros.get_num_layers() - 1) else constants.COLOR_OFF))
+        keys[12].set_led(*constants.COLOR_DARK_BLUE if not screensavers.is_disabled() else constants.COLOR_OFF)
         return
 
       # Layer configured key, restore color
