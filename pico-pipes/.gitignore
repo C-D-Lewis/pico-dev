@@ -5,7 +5,6 @@ build.py
 build/*
 
 # outputs
-notes.h
-notes.py
+notes*
 
 midi

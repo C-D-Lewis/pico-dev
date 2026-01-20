@@ -4,11 +4,15 @@ import time
 import csv
 
 # Output track file for pico
-OUTPUT_NAME = './notes.h'
+OUTPUT_NAME_PICO = './notes.h'
 # Output track file for Thumby
 OUTPUT_NAME_THUMBY = './notes.py'
+# Output track file for pebble-dev/watchapps/midi-player
+OUTPUT_NAME_PEBBLE = './notes-pebble.h'
 # Recommended max notes for Thumby memory (+comilation memory required)
 THUMBY_MAX = 800
+# Avoid 'app too large' at 65k warning
+PEBBLE_MAX = 2000
 # Map of program indexes to names
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',
@@ -220,35 +224,62 @@ def main():
   print(f"\nbuild size: {len(output)} bytes")
 
   # Write to Python file - must be as small as possible
-  with open(OUTPUT_NAME, 'w', newline='') as file:
+  with open(OUTPUT_NAME_PICO, 'w', newline='') as file:
     file.write(output)
-    print(f"Wrote {OUTPUT_NAME}")
+    print(f"Wrote {OUTPUT_NAME_PICO}")
 
   if len(data['timeline']) > THUMBY_MAX:
     print('WARNING: Trimming to recommended maximum notes for Thumby')
   thumby_timeline = data['timeline'][0:THUMBY_MAX]
 
   # Build for Thumby
-  thumby_output = output = '# GENERATED WITH pico-pipes/compile.py\n\n'
-  thumby_output += 'FILE_NAME = ' + f"'{file_name.split('/')[-1]}'\n\n"
-  thumby_output += '# Order is track, pitch, on_at, off_at\n'
-  thumby_output += 'TRACK = [\n'
+  output = '# GENERATED WITH pico-pipes/compile.py\n\n'
+  output += 'FILE_NAME = ' + f"'{file_name.split('/')[-1]}'\n\n"
+  output += '# Order is track, pitch, on_at, off_at\n'
+  output += 'TRACK = [\n'
   for event in thumby_timeline:
-    thumby_output += "  ["
-    thumby_output += f"{event['track']}"
-    thumby_output += ", "
-    thumby_output += f"{event['pitch']}"
-    thumby_output += ", "
-    thumby_output += f"{round(event['on_at'], 5)}"
-    thumby_output += ", "
-    thumby_output += f"{round(event['off_at'], 5)}"
-    thumby_output += ' ],\n'
-  thumby_output += ']\n'
+    output += "  ["
+    output += f"{event['track']}"
+    output += ", "
+    output += f"{event['pitch']}"
+    output += ", "
+    output += f"{round(event['on_at'], 5)}"
+    output += ", "
+    output += f"{round(event['off_at'], 5)}"
+    output += ' ],\n'
+  output += ']\n'
 
   # Write file of notes for thumby-dev/midi-player
   with open(OUTPUT_NAME_THUMBY, 'w', newline='') as file:
-    file.write(thumby_output)
+    file.write(output)
     print(f"Wrote {OUTPUT_NAME_THUMBY}")
+
+  # Write Pebble output file
+  if len(data['timeline']) > PEBBLE_MAX:
+    print('WARNING: Trimming to recommended maximum notes for Pebble')
+  pebble_timeline = data['timeline'][0:PEBBLE_MAX]
+
+  output = '// GENERATED WITH pico-pipes/compile.py\n\n'
+  output += f"#define NUM_NOTES {len(pebble_timeline)}\n\n"
+  output += '// Order is track, pitch, on_at, off_at\n'
+  output += 'static const int* NOTE_TABLE[] = {\n'
+  for event in pebble_timeline:
+    output += "  (int[]){ "
+    output += f"{event['track']}"
+    output += ", "
+    output += f"{event['pitch']}"
+    output += ", "
+    output += f"{round(event['on_at'], 5) * 1000}"
+    output += ", "
+    output += f"{round(event['off_at'], 5) * 1000}"
+    output += ' },\n'
+  output += '};\n'
+  print(f"\nbuild size: {len(output)} bytes")
+
+  # Write to Python file - must be as small as possible
+  with open(OUTPUT_NAME_PEBBLE, 'w', newline='') as file:
+    file.write(output)
+    print(f"Wrote {OUTPUT_NAME_PEBBLE}")
 
 if '__main__' in __name__:
   main()
