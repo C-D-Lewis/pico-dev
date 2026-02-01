@@ -116,3 +116,9 @@ cp PicoApp.uf2 /Volumes/RPI-RP2/
 ```
 
 If connected and powered, the Pico will play the tracks chosen on the motors!
+
+Alternatively use the complete script, example:
+
+```
+./build-and-run.sh midi/pirate.mid 0,1 /media/chris/RPI-RP2/
+```
