@@ -1,5 +1,5 @@
 import adafruit_ntp
-import adafruit_requests
+# import adafruit_requests
 import rtc
 import socketpool
 import ssl
@@ -22,7 +22,7 @@ def connect_wifi(keys):
   time.sleep(0.2)
   wifi.radio.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
   pool = socketpool.SocketPool(wifi.radio)
-  session = adafruit_requests.Session(pool, ssl.create_default_context())
+  # session = adafruit_requests.Session(pool, ssl.create_default_context())
   keys[0].set_led(*constants.COLOR_GREEN)
 
 #
